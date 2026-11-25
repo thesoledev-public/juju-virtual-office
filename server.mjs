@@ -4,8 +4,14 @@ import { dirname, extname, join, normalize, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const BASE = resolve(dirname(fileURLToPath(import.meta.url)), 'site');
-const HOST = process.env.HOST || '127.0.0.1';
-const PORT = Number.parseInt(process.env.PORT || '4381', 10);
+// The local preview runner supplies these CLI flags; deployment keeps using
+// the explicit HOST and PORT environment variables.
+const cliValue = (flag) => {
+  const index = process.argv.indexOf(flag);
+  return index < 0 ? undefined : process.argv[index + 1];
+};
+const HOST = process.env.HOST || cliValue('--host') || '127.0.0.1';
+const PORT = Number.parseInt(process.env.PORT || cliValue('--port') || '4381', 10);
 const PUBLIC_BASE_PATH = (process.env.PUBLIC_BASE_PATH || '').replace(/\/$/, '');
 const TYPES = { '.html':'text/html; charset=utf-8', '.css':'text/css; charset=utf-8', '.js':'text/javascript; charset=utf-8', '.mjs':'text/javascript; charset=utf-8', '.png':'image/png', '.svg':'image/svg+xml', '.ico':'image/x-icon', '.json':'application/json; charset=utf-8' };
 
