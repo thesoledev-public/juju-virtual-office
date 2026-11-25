@@ -110,9 +110,16 @@ check_http /office/assets/office-floor.png 200
 check_http /office/api/office/v1/snapshot 501
 check_http / 404
 
-# Ensure the existing NPM container can reach the isolated bridge service.
-docker exec nginx-proxy-manager node -e "fetch('http://$OFFICE_GATEWAY:4381/office/').then(r=>{console.log('JUJU_EVIDENCE office_npm_to_preview_status='+r.status);process.exit(r.status===200?0:1)}).catch(()=>process.exit(1))"
+# NPM integration is a separate, independently approved change. Its container
+# may not yet route to this isolated host listener. Report that fact without
+# rolling back a healthy, unexposed, capped internal preview.
+if timeout 8s docker exec nginx-proxy-manager node -e "fetch('http://$OFFICE_GATEWAY:4381/office/',{signal:AbortSignal.timeout(5000)}).then(r=>{console.log('JUJU_EVIDENCE office_npm_to_preview_status='+r.status);process.exit(r.status===200?0:1)}).catch(()=>process.exit(1))"; then
+  printf 'JUJU_EVIDENCE office_preview_npm_reachable=yes\n'
+else
+  printf 'JUJU_EVIDENCE office_preview_npm_reachable=no\n'
+fi
 
 printf 'JUJU_EVIDENCE office_preview_service=active\n'
 printf 'JUJU_EVIDENCE office_preview_sha=%s\n' "$OFFICE_EXPECTED_SHA"
 printf 'JUJU_EVIDENCE office_preview_npm_route=not_configured\n'
+printf 'JUJU_EVIDENCE office_preview_publication=not_published\n'

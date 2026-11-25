@@ -21,4 +21,6 @@ test('installer is scoped to office and does not mutate the proxy configuration'
   assert.match(installer, /OFFICE_SERVICE_UNIT='\/etc\/systemd\/system\/juju-office\.service'/);
   assert.match(installer, /test ! -e "\$OFFICE_SERVICE_UNIT"/);
   assert.doesNotMatch(installer, /docker\s+(?:restart|stop|rm)|nginx\s+-s\s+reload/);
+  assert.match(installer, /office_preview_publication=not_published/);
+  assert.match(installer, /office_preview_npm_reachable=no/);
 });
