@@ -47,6 +47,12 @@
           <span class="scene-section"><span class="scene-dot"></span><span id="scene-title">The studio floor</span> <span id="scene-caption">10 departments &amp; roles</span></span>
           <div class="floor-controls" aria-label="Office scene controls"><button id="zoom-out" aria-label="Zoom out" title="Zoom out">−</button><span id="zoom-readout">100%</span><button id="zoom-in" aria-label="Zoom in" title="Zoom in">+</button><button id="scene-reset" title="Recenter office" aria-label="Recenter office">⌖</button></div>
         </div>
+        <div id="live-connection" class="live-connection" role="status" aria-live="polite" hidden>
+          <span class="connection-orb" aria-hidden="true">◌</span>
+          <div class="connection-body"><strong id="connection-title">Connecting to JUJU</strong><p id="connection-message">Awaiting authorized tasks.</p>
+            <div class="connection-actions"><a id="connection-login" href="/" target="_blank" rel="noopener noreferrer">Open JUJU Control Center ↗</a><button type="button" id="connection-retry">↻ Retry live</button></div>
+          </div>
+        </div>
         <div class="floor-viewport" id="floor-viewport" tabindex="0" aria-label="Scrollable isometric office; use the scrollbars or shift and mouse wheel to pan">
           <div class="floor-world" id="floor-world">
             <img class="floor-art" src="./assets/office-floor.png" alt="Detailed 2.5D isometric office with glass planning room, creative desks, development workstations, test lab, server infrastructure and a content studio" draggable="false" />
