@@ -1,8 +1,16 @@
 # Read-Only Office Snapshot API (frontend v0.1)
 
-Status: **frontend consumer contract implemented; private provider not implemented**.
+Status: **frontend consumer contract and conservative same-origin JUJU jobs projection implemented; private snapshot provider not implemented**.
 
 Request: `GET /api/office/v1/snapshot` when served at a domain root, or `GET /office/api/office/v1/snapshot` when served under `/office/`. Browser sends same-origin session credentials. The deployed reverse proxy must route this to a **private authenticated adapter**, not to public demo fixtures.
+
+### Same-origin Control Center fallback for the requested legacy URL
+
+At **exactly** `auto.juju-mini.local/office/`, if the optional snapshot endpoint explicitly returns HTTP 501 (not configured), the browser can request the existing Control Center's `GET /api/v1/jobs?limit=100` using the operator's **same-origin JUJU session**. The source endpoint already requires `jobs.view`; no credentials, tokens or private URLs are embedded in public code. This behavior is disabled on every other host and on the synthetic demo.
+
+The response is projected in browser memory into ten role slots. Only unambiguous stage names (for example `coding`, `planning`, `testing`, `deployment`, `editorial`, `social`) activate a corresponding avatar. Generic `execution` or unrecognized stages are listed as job activity but **do not** make someone appear to be coding. Stale active jobs lose their active animation; project progress remains unknown (`null`). A missing/expired session shows an unauthorized/offline state, not synthetic activity.
+
+This is an initial integration path, **not proof of successful live UX**. Session cookie scope, NPM path routing and exact observed stage vocabulary still require real-LAN UAT. The private adapter remains the preferred way to deliver stronger role provenance, authorization and server-side data minimization.
 
 ## Response (example fields only)
 

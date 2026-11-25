@@ -1,5 +1,6 @@
 import { demoSnapshot } from './data.mjs';
 import { escapeHTML as h, isActive, normalizedState, sanitizeSnapshot, stateText } from './projection.mjs';
+import { projectJujuJobs } from './juju-live.mjs';
 
 // JUJU Office is a read-only projection, never a second task scheduler.
 // In DEMO mode only synthetic data is used. LIVE requires a separately
@@ -15,6 +16,8 @@ const PIPES = ['Coding', 'Review', 'QA', 'Deploy'];
 // Resolve from the page location so optional /office/ hosting does not send
 // authenticated adapter calls to the Control Center's legacy root routes.
 const LIVE_URL = new URL('./api/office/v1/snapshot', document.baseURI).pathname;
+const SAME_ORIGIN_JUJU_ALLOWED = window.location.hostname === 'auto.juju-mini.local'
+  && window.location.pathname.startsWith('/office/');
 
 function projectById(id) { return state.snapshot.projects.find(p => p.id === id); }
 function roleRoster() {
@@ -43,7 +46,7 @@ function renderMode() {
   badge.className = `mode-badge ${state.mode === 'live' ? (state.connection === 'connected' ? 'live' : 'disconnected') : ''}`;
   badge.innerHTML = `<span class="status-light"></span> ${state.mode === 'demo' ? 'DEMO' : state.connection === 'connected' ? 'LIVE' : 'OFFLINE'}`;
   $('mode-toggle-label').textContent = state.mode === 'demo' ? 'Connect live' : 'Return to demo';
-  $('scene-caption').textContent = state.mode === 'demo' ? '10 virtual roles · synthetic sample' : state.connection === 'connected' ? 'Verified JUJU work · read-only' : 'Awaiting verified JUJU data';
+  $('scene-caption').textContent = state.mode === 'demo' ? '10 virtual roles · synthetic sample' : state.connection === 'connected' ? 'Authorized JUJU jobs · read-only' : state.connection === 'unauthorized' ? 'JUJU sign-in required' : 'Awaiting verified JUJU data';
 }
 function renderProjects() {
   $('project-count').textContent = `(${state.snapshot.projects.length})`;
@@ -91,7 +94,7 @@ function renderInspector() {
     <div class="detail-section"><div class="detail-label"><span class="detail-icon">♧</span> Pipeline</div><div class="pipeline-steps">${PIPES.map((step,i) => `<div class="pipeline-step ${index > i ? 'passed' : index === i && isActive(p.state) ? 'current' : ''}"><span class="pipeline-dot">${index > i ? '✓' : ''}</span><span>${step}</span></div>`).join('')}</div></div>
     <div class="inspector-rule"></div>
     <div class="detail-section"><div class="detail-label"><span class="detail-icon">▱</span> Project</div><div class="project-inline">${proj ? `<span class="project-icon" style="background:${proj.color === 'teal' ? '#15bda5' : '#9350df'}">${h(proj.icon || proj.name[0])}</span>${h(proj.name)}` : '<span>No assigned project</span>'}</div></div>
-    <div class="inspector-footnote">${state.mode === 'demo' ? 'Portfolio demonstration: all names, jobs, task descriptions, progress and activity are synthetic.' : state.connection !== 'connected' ? 'Disconnected. This panel does not represent current live activity.' : 'Live read-only projection. Each role is a visual representative, not a literal human employee. Only authorized evidence should be shown.'}</div>
+    <div class="inspector-footnote">${state.mode === 'demo' ? 'Portfolio demonstration: all names, jobs, task descriptions, progress and activity are synthetic.' : state.connection === 'unauthorized' ? 'JUJU session is not authorized. Sign in to the existing Control Center, then reconnect. No task activity is displayed without permission.' : state.connection !== 'connected' ? 'Disconnected. This panel does not represent current live activity.' : 'Live read-only projection. Each role is a visual representative, not a literal human employee. Only authorized evidence should be shown.'}</div>
   </div>`;
 }
 function renderActivity() {
@@ -150,14 +153,30 @@ async function refreshLive() {
   const timeout = setTimeout(() => controller.abort(), 7000);
   try {
     const res = await fetch(LIVE_URL, { credentials: 'same-origin', cache: 'no-store', signal: controller.signal, headers: { Accept: 'application/json' } });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const snapshot = sanitizeSnapshot(await res.json());
+    let data;
+    if (res.status === 501 && SAME_ORIGIN_JUJU_ALLOWED) {
+      // Explicitly scoped to the legacy JUJU origin. This reuses the existing
+      // operator's same-site session and jobs.view authorization, not a token.
+      const source = await fetch('/api/v1/jobs?limit=100', {
+        credentials: 'same-origin',cache:'no-store',signal:controller.signal,
+        headers:{Accept:'application/json'}
+      });
+      if (source.status === 401 || source.status === 403) throw new Error('JUJU sign-in required');
+      if (!source.ok) throw new Error(`JUJU jobs HTTP ${source.status}`);
+      data = projectJujuJobs(await source.json());
+    } else {
+      if (res.status === 401 || res.status === 403) throw new Error('JUJU sign-in required');
+      if (!res.ok) throw new Error(`Office adapter HTTP ${res.status}`);
+      data = await res.json();
+    }
+    const snapshot = sanitizeSnapshot(data);
     if (state.mode !== 'live') return;
     state.snapshot = snapshot; state.lastSuccess = Date.now(); state.lastLiveError = '';
     state.connection = snapshot.stale ? 'stale' : 'connected'; renderAll();
   } catch (error) {
     if (state.mode !== 'live') return;
-    state.connection = 'disconnected'; state.lastLiveError = String(error?.message || error).slice(0,100);
+    state.lastLiveError = String(error?.message || error).slice(0,100);
+    state.connection = state.lastLiveError === 'JUJU sign-in required' ? 'unauthorized' : 'disconnected';
     state.snapshot = { schema_version:'1.0', mode:'live', observed_at:null, projects:[], staff:[], activity:[] };
     renderAll();
   } finally { clearTimeout(timeout); }

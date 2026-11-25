@@ -19,6 +19,7 @@ Visit `http://127.0.0.1:4381`. The static runtime requires Node 20+ and **no thi
 - Navy chrome, project filtering, navigation, task cards, inspector, pipeline, project status, activity ticker, search, zoom/pan and keyboard-focusable worker controls.
 - An **always labelled synthetic DEMO**; the Connect live control expects an authenticated, same-origin `/api/office/v1/snapshot` and deliberately displays OFFLINE instead of pretending there is live work.
 - Snapshot validation, HTML escaping, URL validation and stale-state handling.
+- Browser-only same-origin fallback at `auto.juju-mini.local/office/` to the existing authenticated JUJU `GET /api/v1/jobs` API, mapping only unambiguous stages to virtual roles; generic execution remains unassigned. This is not yet real-host validated.
 - No remote services, telemetry, private token or arbitrary external write required for the demo.
 - Source checks currently run locally with Node's built-in runner. No GitHub-hosted CI is included; any automated source validation must be wired through JUJU's approved self-hosted runner before release.
 

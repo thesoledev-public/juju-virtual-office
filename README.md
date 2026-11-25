@@ -39,7 +39,7 @@ flowchart LR
     C --> D["JUJU Office visualization"]
 ```
 
-The browser expects a same-origin, authenticated `api/office/v1/snapshot` implementing `docs/EVENT_CONTRACT.md`. No secret tokens or private client records belong in this public repository. Public UI source, sample tasks and visual assets remain safely separate from the private integration work.
+The browser expects a same-origin, authenticated `api/office/v1/snapshot` implementing `docs/EVENT_CONTRACT.md`. On the requested legacy `auto.juju-mini.local/office/` URL, a conservative fallback can also read the existing authorized Control Center `/api/v1/jobs` endpoint if the new adapter is not installed. No secret tokens or private client records belong in this public repository. Public UI source, sample tasks and visual assets remain safely separate from the private integration work.
 
 ## Project documentation
 

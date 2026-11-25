@@ -21,6 +21,13 @@ This is a factual work log. Planned tasks are not reported as implemented, teste
 - Local `npm test`: **5 passed, 0 failed**; `npm run check`: passed. No comprehensive browser visual QA yet.
 - A deliberate `/office/` path-prefix test passed: HTTP 308 redirect for `/office`, HTTP 200 for page and static assets, HTTP 501 for the absent authenticated adapter, and HTTP 404 at the service root. This validates the local app behavior, **not** actual NPM/Windows client routing.
 - Added a frontend snapshot contract (`docs/SNAPSHOT_API.md`) with ten stable role slots and explicit missing-data/staleness rules.
+
+## 2026-11-25 — Approved end-to-end continuation
+
+- Added `site/juju-live.mjs`: a read-only in-browser mapping of the **existing** Control Center `GET /api/v1/jobs` output into verified role/state snapshots when hosted at `auto.juju-mini.local/office/`. No tokens or server-side scheduler created. Ambiguous source stages do not activate virtual employees.
+- Added tests for auth-safe fail-closed projection, ambiguous execution stages, time-staleness, role mapping and unknown completion percentages. Local test suite now passes **11 of 11**; syntax check passes.
+- Read-only JUJU M0C issue #4478 queued to independently verify current root disk capacity and `/office/` routing safety before deploying any service. Root legacy Control Center ownership must not change.
+- Browser UAT and actual deployed live data remain unverified. Do not call this a completed production release.
 - Removed a draft GitHub-hosted CI workflow from this branch to keep source validation aligned with JUJU's existing self-hosted runner governance.
 - Known art gap: the generated characters still need consistent seat/walk/type animation frames, silhouette edge cleanup, depth/occlusion and visual comparison before this can be considered faithful to the mockup.
 - Private JUJU host M0 read-only preflight succeeded (private issue #4457, Actions run `45539772630`); selected read-only capacity/routing evidence is being gathered separately because full stdout is local-only.
