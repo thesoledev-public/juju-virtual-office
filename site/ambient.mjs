@@ -4,14 +4,14 @@
 export const AMBIENT_INTERVAL_MS = 14_000;
 
 const places = {
-  maya:   { idle: [38, 48], work: [29, 48], dx: 14, dy: -9 },
-  leo:    { idle: [45, 45], work: [40, 48], dx: -12, dy: 7 },
-  dani:   { idle: [55, 45], work: [48, 74], dx: 24, dy: -8 },
+  maya:   { idle: [36, 46], work: [29, 48], dx: 14, dy: -9 },
+  leo:    { idle: [43, 46], work: [40, 48], dx: -12, dy: 7 },
+  dani:   { idle: [56, 34], work: [48, 74], dx: 24, dy: -8 },
   noah:   { idle: [61, 49], work: [61, 73], dx: -22, dy: -9 },
   aria:   { idle: [22, 75], work: [24, 74], dx: 16, dy: 0 },
   erin:   { idle: [89, 62], work: [78, 61], dx: -15, dy: 6 },
-  kai:    { idle: [55, 37], work: [62, 39], dx: 14, dy: -9 },
-  avery:  { idle: [42, 52], work: [38, 63], dx: 19, dy: -6 },
+  kai:    { idle: [71, 29], work: [62, 39], dx: 14, dy: -9 },
+  avery:  { idle: [52, 42], work: [38, 63], dx: 19, dy: -6 },
   sophie: { idle: [85, 34], work: [85, 36], dx: -12, dy: -9 },
   milo:   { idle: [95, 42], work: [93, 37], dx: -15, dy: 4 }
 };
