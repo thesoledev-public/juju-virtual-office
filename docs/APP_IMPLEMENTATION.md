@@ -33,6 +33,7 @@ Visit `http://127.0.0.1:4381`. The static runtime requires Node 20+ and **no thi
 - `juju-office-web` built from the public repository and joined to existing external Docker network `npm_proxy`.
 - Proposed independent host: `juju-virtual-office.juju.home.arpa` → NPM proxy host → `juju-office-web:4381`.
 - `auto.juju-mini.local` currently serves the legacy JUJU Control Center. Never replace its root mapping. The optional `/office/` path requires explicit collision and asset path validation, since the current static page expects absolute `/api/office/` and relative static assets.
+- If a carefully validated NPM Custom Location forwards `/office/` with its prefix intact, start the web service with `PUBLIC_BASE_PATH=/office`; relative assets and same-origin live API calls remain under `/office/`. This **does not** configure the private adapter or NPM location itself.
 - Private adapter is same-origin behind the reverse proxy, with the existing authenticated JUJU authorization boundary; it must not be included in public assets or expose raw events.
 
 ## Implementation guardrails

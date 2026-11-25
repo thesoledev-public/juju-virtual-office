@@ -12,8 +12,9 @@ const state = {
 };
 const positions = new Map(demoSnapshot.staff.map(p => [p.id, p]));
 const PIPES = ['Coding', 'Review', 'QA', 'Deploy'];
-const LIVE_URL = '/api/office/v1/snapshot';
-const sleep = ms => new Promise(r => setTimeout(r, ms));
+// Resolve from the page location so optional /office/ hosting does not send
+// authenticated adapter calls to the Control Center's legacy root routes.
+const LIVE_URL = new URL('./api/office/v1/snapshot', document.baseURI).pathname;
 
 function projectById(id) { return state.snapshot.projects.find(p => p.id === id); }
 function roleRoster() {

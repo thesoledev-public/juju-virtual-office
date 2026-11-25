@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 const BASE = resolve(dirname(fileURLToPath(import.meta.url)), 'site');
 const HOST = process.env.HOST || '127.0.0.1';
 const PORT = Number.parseInt(process.env.PORT || '4381', 10);
+const PUBLIC_BASE_PATH = (process.env.PUBLIC_BASE_PATH || '').replace(/\/$/, '');
 const TYPES = { '.html':'text/html; charset=utf-8', '.css':'text/css; charset=utf-8', '.js':'text/javascript; charset=utf-8', '.mjs':'text/javascript; charset=utf-8', '.png':'image/png', '.svg':'image/svg+xml', '.ico':'image/x-icon', '.json':'application/json; charset=utf-8' };
 
 export function handler(req, res) {
@@ -17,6 +18,12 @@ export function handler(req, res) {
   let pathname;
   try { pathname = decodeURIComponent(new URL(req.url,'http://localhost').pathname); } catch { res.writeHead(400).end(); return; }
   if (pathname === '/healthz') { res.writeHead(200,{'Content-Type':'text/plain; charset=utf-8'}).end('ok\n'); return; }
+  if (PUBLIC_BASE_PATH && !/^\/[a-zA-Z0-9/_-]+$/.test(PUBLIC_BASE_PATH)) { res.writeHead(500).end('Invalid public base path'); return; }
+  if (PUBLIC_BASE_PATH && pathname === PUBLIC_BASE_PATH) { res.writeHead(308,{Location:PUBLIC_BASE_PATH + '/'}).end(); return; }
+  if (PUBLIC_BASE_PATH) {
+    if (!pathname.startsWith(PUBLIC_BASE_PATH + '/')) { res.writeHead(404).end(); return; }
+    pathname = pathname.slice(PUBLIC_BASE_PATH.length);
+  }
   if (pathname.startsWith('/api/office/')) {
     // Deliberately not a stub that manufactures live status. In production,
     // NPM routes this path to an authenticated private read-only adapter.
