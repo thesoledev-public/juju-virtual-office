@@ -28,6 +28,14 @@ This is a factual work log. Planned tasks are not reported as implemented, teste
 - Added tests for auth-safe fail-closed projection, ambiguous execution stages, time-staleness, role mapping and unknown completion percentages. Local test suite now passes **11 of 11**; syntax check passes.
 - Read-only JUJU M0C issue #4478 queued to independently verify current root disk capacity and `/office/` routing safety before deploying any service. Root legacy Control Center ownership must not change.
 - Browser UAT and actual deployed live data remain unverified. Do not call this a completed production release.
+
+## 2026-11-25 — Preview capacity and low-impact service design
+
+- M0C #4478 completed on the actual `juju-mini` runner: root filesystem ~6.5 GiB free, available RAM ~3.6 GiB, 1-minute load ~12.4, existing Control Center `/` returned 303, `/office/` returned 404, unauthenticated JUJU jobs API returned 401. No hosting changes were made.
+- M0D #4479 identified host Node **v24.13.0**, existing Nginx Proxy Manager container, Docker network, and external ext4 storage at `/srv/juju-work`; follow-up M0E #4480 measured ~184.4 GiB free on this external volume and ~6.3 GiB remaining on root.
+- M0E verified the proposed `/srv/projects/juju-virtual-office` target, `juju-office.service` systemd unit name and port 4381 are free, and Docker `npm_proxy` exposes a bridge gateway. These are read-only compatibility results, **not deployed revision evidence**.
+- Implemented a separately stoppable host Node service template with 128 MB / 12% CPU limits and a validated NPM bridge binding. This avoids pulling a new Docker image onto the low-free-space root volume. Local tests now **13 passed** and syntax checks pass.
+- NPM, DNS, authenticated live stage transitions and browser acceptance remain pending. The legacy Control Center root route must remain unchanged.
 - Removed a draft GitHub-hosted CI workflow from this branch to keep source validation aligned with JUJU's existing self-hosted runner governance.
 - Known art gap: the generated characters still need consistent seat/walk/type animation frames, silhouette edge cleanup, depth/occlusion and visual comparison before this can be considered faithful to the mockup.
 - Private JUJU host M0 read-only preflight succeeded (private issue #4457, Actions run `45539772630`); selected read-only capacity/routing evidence is being gathered separately because full stdout is local-only.

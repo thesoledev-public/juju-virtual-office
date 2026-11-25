@@ -28,6 +28,8 @@ Open `http://127.0.0.1:4381/` from the machine running the app. It binds to loop
 
 `compose.yaml` prepares a separately stoppable web service attached to the existing external Docker network `npm_proxy` — **Nginx Proxy Manager**, not the npm package registry. It has no public port binding. No Docker deployment or DNS modification is performed by this repository.
 
+For the space-constrained `juju-mini` host, a lower-footprint alternative is included under `deploy/`: a systemd unit template using the already-installed host Node runtime, capped at **128 MB memory and 12% CPU**, listening only on the existing Docker `npm_proxy` bridge gateway. It is installed and configured **only** through a separately approved JUJU deployment job. See the private deployment runbook; do not apply it on arbitrary hosts.
+
 ## How live work will connect
 
 The virtual staff are stage/role representations of JUJU Jobs, not ten literal human employees or ten independent execution agents.
