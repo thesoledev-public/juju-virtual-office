@@ -11,6 +11,10 @@ test('static server serves the scene and does not fake live API', async () => {
     const html = await fetch(`http://127.0.0.1:${port}/`);
     assert.equal(html.status,200);
     assert.match(await html.text(), /JUJU OFFICE/);
+    const typingSprite = await fetch(`http://127.0.0.1:${port}/assets/developer-typing-rear.webp`);
+    assert.equal(typingSprite.status,200);
+    assert.equal(typingSprite.headers.get('content-type'),'image/webp');
+    assert.ok((await typingSprite.arrayBuffer()).byteLength > 10_000);
     const live = await fetch(`http://127.0.0.1:${port}/api/office/v1/snapshot`);
     assert.equal(live.status,501);
     assert.match(await live.text(), /not configured/);

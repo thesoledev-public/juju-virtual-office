@@ -13,7 +13,7 @@ const cliValue = (flag) => {
 const HOST = process.env.HOST || cliValue('--host') || '127.0.0.1';
 const PORT = Number.parseInt(process.env.PORT || cliValue('--port') || '4381', 10);
 const PUBLIC_BASE_PATH = (process.env.PUBLIC_BASE_PATH || '').replace(/\/$/, '');
-const TYPES = { '.html':'text/html; charset=utf-8', '.css':'text/css; charset=utf-8', '.js':'text/javascript; charset=utf-8', '.mjs':'text/javascript; charset=utf-8', '.png':'image/png', '.svg':'image/svg+xml', '.ico':'image/x-icon', '.json':'application/json; charset=utf-8' };
+const TYPES = { '.html':'text/html; charset=utf-8', '.css':'text/css; charset=utf-8', '.js':'text/javascript; charset=utf-8', '.mjs':'text/javascript; charset=utf-8', '.png':'image/png', '.webp':'image/webp', '.svg':'image/svg+xml', '.ico':'image/x-icon', '.json':'application/json; charset=utf-8' };
 
 export function handler(req, res) {
   res.setHeader('X-Content-Type-Options', 'nosniff');
