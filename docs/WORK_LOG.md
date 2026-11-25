@@ -53,6 +53,8 @@ This is a factual work log. Planned tasks are not reported as implemented, teste
 - Read-only plus bounded ephemeral tests #4483 and #4484 isolated network versus service behavior: the directly invoked Node server successfully served **HTTP 200** on the intended NPM bridge gateway, but a constrained transient systemd service did not. Persistent host/service integration is **not** yet functioning, and the NPM route remains unchanged.
 - A further approved scoped #4485 comparison was queued to identify whether systemd launch configuration or its resource properties cause the difference. No broad system configuration changes are authorized.
 - Added host-specific automatic LIVE connection at the exact `auto.juju-mini.local/office/` origin, reusing existing user authentication; the public/portfolio origin continues to default to synthetic DEMO. One new regression test raises local results to **16 passed**.
+- Follow-up property isolation #4485 returned systemd exit **127** in both minimally constrained and fully sandboxed launches. Read-only #4486 confirmed the working Node v24.13.0 executable lives inside JUJU's per-user NVM installation; there is no `/usr/bin/node` or `/usr/local/bin/node`. The service cannot rely on the runner's shell PATH.
+- Updated the public installer and template to copy this specific validated Node binary to a root-owned, version-pinned executable on the spacious external work volume; the unit executes it by absolute path and retains `ProtectHome=true`. Source/target SHA-256 equality is required. No Docker image is built, and the installed runtime is limited to this office project. This fix has **not yet been proven on the host**. Local suite is **17 passed**.
 
 ## Pending evidence
 

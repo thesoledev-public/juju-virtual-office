@@ -12,6 +12,9 @@ test('preview has bounded startup readiness and failure rollback', () => {
   assert.match(installer, /trap rollback_own_unit EXIT/);
   assert.match(installer, /systemctl disable --now juju-office\.service/);
   assert.match(installer, /office-preview-audit/);
+  assert.match(installer, /OFFICE_NODE_SOURCE='\/home\/juju\/\.nvm\/versions\/node\/v24\.13\.0\/bin\/node'/);
+  assert.match(installer, /sudo -n install -o root -g root -m 0755 "\$OFFICE_NODE_SOURCE" "\$OFFICE_NODE_TARGET"/);
+  assert.match(installer, /sha256sum "\$OFFICE_NODE_TARGET"/);
 });
 
 test('installer is scoped to office and does not mutate the proxy configuration', () => {

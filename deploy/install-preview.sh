@@ -8,6 +8,9 @@ OFFICE_EXPECTED_SHA="${1:-}"
 OFFICE_PROJECT_DIR='/srv/projects/juju-virtual-office'
 OFFICE_SERVICE_UNIT='/etc/systemd/system/juju-office.service'
 OFFICE_AUDIT_DIR='/srv/juju-work/juju-office-preview-audit'
+OFFICE_RUNTIME_DIR='/srv/juju-work/juju-office-runtime'
+OFFICE_NODE_SOURCE='/home/juju/.nvm/versions/node/v24.13.0/bin/node'
+OFFICE_NODE_TARGET="$OFFICE_RUNTIME_DIR/node-v24.13.0"
 OFFICE_INSTALLED=0
 
 if [[ ! "$OFFICE_EXPECTED_SHA" =~ ^[0-9a-f]{40}$ ]]; then
@@ -23,7 +26,10 @@ test -f "$OFFICE_PROJECT_DIR/site/index.html"
 test -f "$OFFICE_PROJECT_DIR/site/assets/office-floor.png"
 test -f "$OFFICE_PROJECT_DIR/site/assets/worker-atlas.png"
 test -f "$OFFICE_PROJECT_DIR/site/assets/developer-typing.png"
+test -x "$OFFICE_NODE_SOURCE"
+test "$("$OFFICE_NODE_SOURCE" --version)" = v24.13.0
 test "$(df -Pk / | awk 'NR==2{print $4}')" -gt 4194304
+test "$(df -Pk /srv/juju-work | awk 'NR==2{print $4}')" -gt 1048576
 test "$(awk '/MemAvailable:/{print $2}' /proc/meminfo)" -gt 1048576
 
 if curl -fsS --connect-timeout 2 --max-time 4 http://127.0.0.1:4381/healthz >/dev/null; then
@@ -41,7 +47,18 @@ node --test site/*.test.mjs deploy/*.test.mjs server.test.mjs
 node --check site/app.js
 node --check site/juju-live.mjs
 node --check server.mjs
-node deploy/render-unit.mjs "$OFFICE_GATEWAY" "$OFFICE_UNIT_CANDIDATE"
+node deploy/render-unit.mjs "$OFFICE_GATEWAY" "$OFFICE_NODE_TARGET" "$OFFICE_UNIT_CANDIDATE"
+
+# Systemd does not inherit the runner's NVM PATH, and ProtectHome=true must
+# remain in place. Use a root-owned copy on the spacious external mount. Only
+# the exact observed v24.13.0 binary is eligible for this first rollout.
+sudo -n install -d -o root -g root -m 0755 "$OFFICE_RUNTIME_DIR"
+if [[ ! -e "$OFFICE_NODE_TARGET" ]]; then
+  sudo -n install -o root -g root -m 0755 "$OFFICE_NODE_SOURCE" "$OFFICE_NODE_TARGET"
+fi
+test "$(stat -Lc '%U:%G' "$OFFICE_NODE_TARGET")" = root:root
+test "$(sha256sum "$OFFICE_NODE_SOURCE" | awk '{print $1}')" = "$(sha256sum "$OFFICE_NODE_TARGET" | awk '{print $1}')"
+test "$("$OFFICE_NODE_TARGET" --version)" = v24.13.0
 
 rollback_own_unit() {
   result=$?

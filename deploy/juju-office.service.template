@@ -14,7 +14,7 @@ Environment=HOST=__NPM_BRIDGE_GATEWAY__
 Environment=PORT=4381
 Environment=PUBLIC_BASE_PATH=/office
 ExecStartPre=/usr/bin/test -f /srv/projects/juju-virtual-office/site/index.html
-ExecStart=/usr/bin/env node /srv/projects/juju-virtual-office/server.mjs
+ExecStart=__OFFICE_NODE_EXECUTABLE__ /srv/projects/juju-virtual-office/server.mjs
 Restart=on-failure
 RestartSec=5
 TimeoutStartSec=20
