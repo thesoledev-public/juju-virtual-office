@@ -4,14 +4,14 @@ An expressive, browser-based 2.5D virtual software studio that turns real automa
 
 ![Detailed original 2.5D office floor artwork showing planning, creative, development, QA, DevOps and content workstations](site/assets/office-floor.png)
 
-> **Status:** A runnable, interactive **vertical slice**, not a deployed or production-approved application. The office scene and inspector are functional; the character animation pipeline, verified JUJU adapter, local Nginx Proxy Manager route and LAN acceptance are still in progress. The public demonstration uses **synthetic demo data only**.
+> **Status (2026-11-25):** An interactive **vertical slice** with a JUJU Mini host-side route now verified at [http://auto.juju-mini.local/office/](http://auto.juju-mini.local/office/). NPM returns HTTP 200 for the page and assets while the existing Control Center root and protected API remain intact. **This is not yet a fully accepted production release**: a signed-in LAN browser, exact live worker alignment, restart persistence, and final animation fidelity still need acceptance. The public demonstration uses **synthetic demo data only**.
 
 ## Experience
 
 - Explore a panoramic 2.5D office, pan/zoom, click any character, or search to locate a role.
 - View a selected worker's task, current state, department, project, pipeline and job reference in the inspector.
 - Filter the scene by project. Browse Tasks, Automation, Projects, Reports and the activity feed.
-- Switch between an explicitly labeled synthetic **DEMO** and read-only **LIVE** mode. LIVE never fabricates current activity; without the private authorized adapter it shows **OFFLINE**. The portfolio/other hosts start in DEMO; only `auto.juju-mini.local/office/` automatically attempts LIVE using the existing JUJU session.
+- Switch between an explicitly labeled synthetic **DEMO** and read-only **LIVE** mode. LIVE never fabricates current activity; unauthenticated or unavailable job data shows a disconnected state. The portfolio/other hosts start in DEMO; only `auto.juju-mini.local/office/` automatically attempts LIVE using the existing JUJU session and a conservative authenticated jobs API fallback while the private adapter is absent.
 - Includes Project Manager, Team Lead, Senior Developer, Developer, Creative Designer, QA Engineer, DevOps Engineer, Business Analyst, **Content Writer**, and **Social Media Specialist**.
 
 ## Start the preview
@@ -39,11 +39,11 @@ The virtual staff are stage/role representations of JUJU Jobs, not ten literal h
 ```mermaid
 flowchart LR
     A["Existing JUJU jobs"] --> B["Control Center (authority)"]
-    B --> C["Authorized read-only adapter"]
+    B --> C["Authorized read-only job projection"]
     C --> D["JUJU Office visualization"]
 ```
 
-The browser expects a same-origin, authenticated `api/office/v1/snapshot` implementing `docs/EVENT_CONTRACT.md`. On the requested legacy `auto.juju-mini.local/office/` URL, a conservative fallback can also read the existing authorized Control Center `/api/v1/jobs` endpoint if the new adapter is not installed. No secret tokens or private client records belong in this public repository. Public UI source, sample tasks and visual assets remain safely separate from the private integration work.
+The planned same-origin, authenticated `api/office/v1/snapshot` adapter implements `docs/EVENT_CONTRACT.md` but is **not yet deployed** (its placeholder returns HTTP 501). On the requested `auto.juju-mini.local/office/` URL, the working UI can instead read the existing Control Center `/api/v1/jobs` endpoint under the operator's existing session and `jobs.view` authorization. The mapping is conservative and read-only: stale, uncertain or unauthorized jobs cannot be presented as active workers. Signed-in LAN validation is still pending. No secret tokens or private client records belong in this public repository.
 
 ## Project documentation
 
@@ -56,4 +56,4 @@ The browser expects a same-origin, authenticated `api/office/v1/snapshot` implem
 - [Work log](docs/WORK_LOG.md)
 - [Project epic](https://github.com/thesoledev-public/juju-virtual-office/issues/9)
 
-Future milestones include production character movement and furniture occlusion, secure job snapshots, NPM/DNS validation on `juju-mini`, responsive UAT and a resource budget that does not slow existing JUJU tasks.
+Future milestones include final character movement and furniture occlusion, richer authenticated job snapshots, LAN client DNS/browser and session acceptance, proxy regeneration checks, and a measured resource budget that does not slow existing JUJU tasks.
