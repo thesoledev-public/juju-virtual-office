@@ -67,7 +67,7 @@ function renderPeople() {
     const seated = ['dani', 'noah'].includes(p.id) && isActive(p.state);
     const artPosition = seated ? `${p.id === 'dani' ? 0 : 100}% 0%` : glyph(p.sprite);
     const bubble = (p.bubble && isActive(p.state)) ? `<span class="speech">${h(p.bubble)}</span>` : '';
-    return `<button type="button" class="person ${personClass(p)} ${seated ? 'sitting' : ''} ${state.selected === p.id ? 'selected bubble-highlight' : ''} ${!dimmed && [2,5,6,8].includes(i) ? 'bubble-highlight' : ''} ${dimmed ? 'dimmed' : ''}" data-person="${h(p.id)}"
+    return `<button type="button" class="person role-${h(p.id)} ${personClass(p)} ${seated ? 'sitting' : ''} ${state.selected === p.id ? 'selected bubble-highlight' : ''} ${!dimmed && [2,5,6,8].includes(i) ? 'bubble-highlight' : ''} ${dimmed ? 'dimmed' : ''}" data-person="${h(p.id)}"
       style="left:${p.x}%;top:${p.y}%;--delay:-${(i % 5) * .41}s" aria-label="${h(p.role)}: ${h(p.task || stateText(p.state))}" aria-pressed="${state.selected === p.id}">
       <span class="ground-ring"></span><span class="character" style="background-position:${artPosition}"></span>${bubble}<span class="person-label">${h(p.role)}</span>
     </button>`;

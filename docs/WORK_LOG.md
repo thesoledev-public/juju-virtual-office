@@ -67,3 +67,11 @@ This is a factual work log. Planned tasks are not reported as implemented, teste
 - Working character animations and interactive office.
 - Authenticated stage/status integration and reconnection.
 - Browser UAT, resource benchmarks, exact deployed revision, and local route acceptance.
+
+## 2026-11-25 — NPM-visible sidecar verified; safe publication hold
+
+- Approved JUJU #4489 [Actions run 45681923657](https://github.com/thesoledev-public/juju-automation-platform/actions/runs/45681923657) **succeeded**. An isolated `juju-office-web` container runs on `npm_proxy` with 128 MiB memory / 12% CPU caps, no image pull/build, no host-published port, read-only source and unprivileged user. The running source is exact commit `a0ea200b09c2ec747531c36234b0bf74d531d1eb`.
+- Directly from inside NPM, `/healthz`, `/office/`, `/office/app.js`, and `/office/assets/office-floor.png` each returned **HTTP 200**; the intentionally unimplemented private adapter returned **501**, and service `/` returned **404**. The runner explicitly reported `office_sidecar_publication=not_published`.
+- Read-only NPM management discovery #4490 [Actions run 45681995916](https://github.com/thesoledev-public/juju-automation-platform/actions/runs/45681995916) **failed before executing its command**: JUJU's standard runner reported `insufficient internal disk for durable JUJU state`. Its hard floor is 5 GiB on the internal project filesystem. This gate must remain in force; no NPM host edit, service cleanup or project migration is authorized by the failed probe.
+- Improved conservative LIVE role alignment: explicit high-confidence task verbs can identify an employee during a generic execution stage, but ambiguous titles and queued/stale/unknown jobs remain inactive. Added distinct lightweight role gestures with reduced-motion support. Local suite now **21 passed** and syntax checks pass. These changes are source-only until a separately verified host upgrade.
+- **Public `/office/` remains unavailable** pending root-space recovery, scoped NPM API/config backup and route modification, authenticated task/RBAC checks, LAN browser/visual UAT, and final performance review. Existing Control Center `/` is unchanged.

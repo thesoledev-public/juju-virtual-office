@@ -27,8 +27,10 @@ export function mapJujuState(value) {
 function clearRole(job) {
   const stage = String(job.stage || '').toLowerCase().replace(/[_-]/g,' ');
   const task = String(job.title || '').toLowerCase();
-  // Stage semantics are authoritative. Titles are only used to disambiguate
-  // categories that would otherwise be too generic to represent as a role.
+  // Prefer an explicit execution stage. A generic stage is not proof that a
+  // virtual employee is working, but some job titles state the action clearly
+  // enough to identify a role. Never infer a role from broad words such as
+  // "content", "campaign", "fix" or "design" on their own.
   if (/\b(social|campaign|publishing|media planning)\b/.test(stage)) return 'milo';
   if (/\b(editorial|content writing|copywriting|documentation)\b/.test(stage)) return 'sophie';
   if (/\b(design|creative|artwork|illustration)\b/.test(stage)) return 'aria';
@@ -43,8 +45,19 @@ function clearRole(job) {
     if (/\b(copy|article|editorial|documentation|social|campaign|design|creative|qa|test)\b/.test(task)) return null;
     return 'dani';
   }
-  // Generic stages ("execution", "verification", "queued", etc.) prove a
-  // job exists, but do not prove which virtual employee should be animating.
+  if (!/^(execution|executing|running|active|in progress|working|)$/i.test(stage)) return null;
+  // Explicit verb-object phrases can disambiguate generic execution. The
+  // operator still sees the exact source title in the worker inspector.
+  if (/\b(?:run(?:ning)?|execute|executing)\s+(?:qa|regression|unit|integration|e2e|browser)\s+tests?\b|\b(?:qa|regression)\s+(?:pass|testing|verification)\b/.test(task)) return 'erin';
+  if (/\b(?:deploy(?:ing)?|roll(?:ing)?\s*out|publish(?:ing)?)\s+(?:a\s+|the\s+)?(?:release|staging|production|service|container)\b|\b(?:configure|provision)\s+(?:a\s+|the\s+)?(?:server|proxy|pipeline|infrastructure)\b/.test(task)) return 'kai';
+  if (/\b(?:review(?:ing)?|approve|approving)\s+(?:a\s+|the\s+)?(?:pull request|pr\b|code changes?|architecture)\b/.test(task)) return 'leo';
+  if (/\b(?:write|writing|draft|drafting|edit|editing)\s+(?:the\s+|a\s+)?(?:release notes|documentation|article|blog post|copy)\b/.test(task)) return 'sophie';
+  if (/\b(?:schedule|scheduling|publish|publishing)\s+(?:a\s+|the\s+)?(?:social posts?|social media posts?|campaign posts?)\b/.test(task)) return 'milo';
+  if (/\b(?:create|creating|draw|drawing|illustrate|illustrating)\s+(?:a\s+|the\s+)?(?:ui mockup|wireframe|illustrations?|design assets?)\b/.test(task)) return 'aria';
+  if (/\b(?:plan|planning)\s+(?:a\s+|the\s+)?(?:sprint|roadmap|project kickoff)\b/.test(task)) return 'maya';
+  if (/\b(?:analy[sz]e|analy[sz]ing|research|researching)\s+(?:a\s+|the\s+)?(?:requirements?|user needs|market|accessibility)\b/.test(task)) return 'avery';
+  if (/\b(?:debug|debugging|refactor|refactoring)\b|\b(?:fix|fixing|resolve|resolving)\s+(?:a\s+|the\s+)?(?:[^\n]{0,42}\s)?(?:bug|crash|error|regression)\b|\b(?:implement|implementing|code|coding)\s+(?:a\s+|the\s+)?(?:api|endpoint|feature|component|function)\b/.test(task)) return 'dani';
+  // An ambiguous title or an unknown stage stays unassigned.
   return null;
 }
 

@@ -32,6 +32,26 @@ test('title alone never assigns a social/creative/coding role',()=>{
  const p=projectJujuJobs({items:[{...job,stage:'execution',title:'Post campaign content'}]},NOW);
  assert.equal(p.staff.length,0);
 });
+test('specific job verbs can place a verified generic execution task at a virtual desk',()=>{
+ const examples = [
+  ['Fix a login error','dani'],['Run regression tests','erin'],
+  ['Deploy staging release','kai'],['Review PR #4106','leo'],
+  ['Draft release notes','sophie'],['Schedule social media posts','milo'],
+  ['Create UI mockup','aria'],['Plan sprint','maya'],
+  ['Analyze accessibility requirements','avery']
+ ];
+ for (const [title,expected] of examples) {
+  const p=projectJujuJobs({items:[{...job,stage:'execution',title}]},NOW);
+  assert.equal(p.staff[0]?.id,expected,`generic execution title: ${title}`);
+ }
+});
+test('ambiguous titles, stale updates and non-executing jobs cannot animate staff',()=>{
+ for (const title of ['Fix marketing copy','Improve content','Review campaign ideas','Design new workflow']) {
+  assert.equal(projectJujuJobs({items:[{...job,stage:'execution',title}]},NOW).staff.length,0,title);
+ }
+ assert.equal(projectJujuJobs({items:[{...job,stage:'execution',title:'Fix a login error',state:'queued'}]},NOW).staff.length,0);
+ assert.equal(projectJujuJobs({items:[{...job,stage:'unknown',title:'Fix a login error'}]},NOW).staff.length,0);
+});
 test('production office auto-connects while the portfolio and other hosts remain demo',()=>{
  assert.equal(shouldAutoConnectLive('auto.juju-mini.local','/office/'),true);
  assert.equal(shouldAutoConnectLive('auto.juju-mini.local','/office/tasks'),true);
