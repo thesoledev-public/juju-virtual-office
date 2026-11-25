@@ -15,7 +15,7 @@ Visit `http://127.0.0.1:4381`. The static runtime requires Node 20+ and **no thi
 ## What exists
 
 - Artistically generated 2.5D isometric environment, an original derivative of the user-approved visual target, including a Content & Social workstation.
-- One atlas of ten distinct character-role visuals, positioned as clickable independent office sprites with selection halo, ambient motion and working/status speech.
+- One atlas of ten distinct character-role visuals plus an experimental two-frame seated typing atlas for the two developers, positioned as clickable independent office sprites with selection halo, ambient motion and working/status speech.
 - Navy chrome, project filtering, navigation, task cards, inspector, pipeline, project status, activity ticker, search, zoom/pan and keyboard-focusable worker controls.
 - An **always labelled synthetic DEMO**; the Connect live control expects an authenticated, same-origin `/api/office/v1/snapshot` and deliberately displays OFFLINE instead of pretending there is live work.
 - Snapshot validation, HTML escaping, URL validation and stale-state handling.
@@ -24,7 +24,7 @@ Visit `http://127.0.0.1:4381`. The static runtime requires Node 20+ and **no thi
 
 ## What is NOT complete
 
-- The approved mockup's high-fidelity character posing, furniture occlusion and walk/sit/type animation sequences. Current avatars use CSS pose motion on a generated character atlas and may still show minor edge artifacting. This is a **vertical slice, not final art acceptance**.
+- The approved mockup's high-fidelity full walk → sit → type → stand sequences and furniture occlusion. Two developers now have a preliminary seated two-frame pose, but it still has edge artifacts, subtle hand movement and no walking-to-desk transition. This is a **vertical slice, not final art acceptance**.
 - The authorized JUJU read-only adapter, source state/identity validation, per-job detail and live event reconciliation. These belong in the private integration and require host preflight and RBAC checks.
 - NPM/DNS configuration on `juju-mini`, real LAN curl/browser proof and uptime/resource measurement.
 - Mobile and accessibility acceptance, compatibility across browser engines and screenshot comparison approval.
