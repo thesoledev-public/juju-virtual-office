@@ -18,6 +18,8 @@ test('office sidecar uses only cached NPM image layers and no external publishin
 });
 
 test('office sidecar is exact-revision, checks NPM reachability and rolls back only itself', () => {
+  assert.match(source, /OFFICE_PROJECT_DIR='\/srv\/projects\/juju-virtual-office-sidecar'/);
+  assert.doesNotMatch(source, /systemctl\s+(?:stop|disable|restart)/);
   assert.match(source, /rev-parse HEAD.*\$OFFICE_SHA/);
   assert.match(source, /trap rollback_own_container EXIT/);
   assert.match(source, /docker stop --time 5 "\$OFFICE_CONTAINER"/);

@@ -5,7 +5,9 @@ set -Eeuo pipefail
 set +x
 
 OFFICE_SHA="${1:-}"
-OFFICE_PROJECT_DIR='/srv/projects/juju-virtual-office'
+# Separate source checkout from the already-running host-systemd preview. A
+# sidecar trial must not rewrite files that the previous service is serving.
+OFFICE_PROJECT_DIR='/srv/projects/juju-virtual-office-sidecar'
 OFFICE_CONTAINER='juju-office-web'
 OFFICE_NETWORK='npm_proxy'
 OFFICE_CREATED=0
@@ -21,7 +23,6 @@ test "$(git -C "$OFFICE_PROJECT_DIR" rev-parse HEAD)" = "$OFFICE_SHA"
 test -f "$OFFICE_PROJECT_DIR/site/index.html"
 test -f "$OFFICE_PROJECT_DIR/site/assets/office-floor.png"
 test -f "$OFFICE_PROJECT_DIR/site/assets/worker-atlas.png"
-test ! -e /etc/systemd/system/juju-office.service
 test "$(df -Pk / | awk 'NR==2{print $4}')" -gt 4194304
 
 # Fail if a container with this name already exists. No takeover of anything.
