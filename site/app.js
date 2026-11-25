@@ -136,7 +136,7 @@ function locateWorker(id) {
 function setView(view) { state.view = view; renderView(); }
 function setZoom(value) {
   state.zoom = Math.max(.65,Math.min(1.35,Math.round(value * 100) / 100));
-  document.documentElement.style.setProperty('--scale',state.zoom);
+  $('floor-world').style.width = `${Math.round(1672 * state.zoom)}px`;
   $('zoom-readout').textContent = `${Math.round(state.zoom * 100)}%`;
 }
 function toast(message) { const el = $('toast'); el.textContent = message; el.hidden = false; clearTimeout(toast.timeout); toast.timeout = setTimeout(() => el.hidden = true, 4500); }
@@ -213,4 +213,4 @@ viewport.addEventListener('pointermove',event => {if(!drag)return;viewport.scrol
 function endDrag(){drag=null;viewport.classList.remove('dragging');}
 viewport.addEventListener('pointerup',endDrag);viewport.addEventListener('pointercancel',endDrag);
 document.addEventListener('visibilitychange',() => {if(!document.hidden && state.mode==='live')refreshLive();});
-renderAll(); requestAnimationFrame(initialCenter);
+renderAll(); setZoom(state.zoom); requestAnimationFrame(initialCenter);
