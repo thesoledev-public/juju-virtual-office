@@ -1,6 +1,6 @@
 import { demoSnapshot } from './data.mjs';
 import { escapeHTML as h, isActive, normalizedState, sanitizeSnapshot, stateText } from './projection.mjs';
-import { projectJujuJobs } from './juju-live.mjs';
+import { projectJujuJobs, shouldAutoConnectLive } from './juju-live.mjs';
 
 // JUJU Office is a read-only projection, never a second task scheduler.
 // In DEMO mode only synthetic data is used. LIVE requires a separately
@@ -16,8 +16,7 @@ const PIPES = ['Coding', 'Review', 'QA', 'Deploy'];
 // Resolve from the page location so optional /office/ hosting does not send
 // authenticated adapter calls to the Control Center's legacy root routes.
 const LIVE_URL = new URL('./api/office/v1/snapshot', document.baseURI).pathname;
-const SAME_ORIGIN_JUJU_ALLOWED = window.location.hostname === 'auto.juju-mini.local'
-  && window.location.pathname.startsWith('/office/');
+const SAME_ORIGIN_JUJU_ALLOWED = shouldAutoConnectLive(window.location.hostname, window.location.pathname);
 
 function projectById(id) { return state.snapshot.projects.find(p => p.id === id); }
 function roleRoster() {
@@ -233,3 +232,4 @@ function endDrag(){drag=null;viewport.classList.remove('dragging');}
 viewport.addEventListener('pointerup',endDrag);viewport.addEventListener('pointercancel',endDrag);
 document.addEventListener('visibilitychange',() => {if(!document.hidden && state.mode==='live')refreshLive();});
 renderAll(); setZoom(state.zoom); requestAnimationFrame(initialCenter);
+if (SAME_ORIGIN_JUJU_ALLOWED) toggleMode();

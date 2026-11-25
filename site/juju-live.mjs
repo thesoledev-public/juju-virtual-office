@@ -12,6 +12,12 @@ const ROLE_NAMES = Object.freeze({
 const ACTIVE_STATES = new Set(['running', 'executing', 'in_progress']);
 const KNOWN_STATES = new Set(['queued','claimed','ready','pending','running','executing','in_progress','reviewing','testing','deploying','blocked','failed','succeeded','cancelled','canceled','waiting_approval','awaiting_approval']);
 
+// The public portfolio preview starts in explicit DEMO mode. Only the
+// operator's existing JUJU origin is eligible for automatic LIVE attachment.
+export function shouldAutoConnectLive(hostname, pathname) {
+  return hostname === 'auto.juju-mini.local' && pathname.startsWith('/office/');
+}
+
 export function mapJujuState(value) {
   const state = String(value || '').toLowerCase();
   if (!KNOWN_STATES.has(state)) return 'unknown';

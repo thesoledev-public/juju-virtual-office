@@ -47,6 +47,13 @@ This is a factual work log. Planned tasks are not reported as implemented, teste
 - The initial failure is consistent with the service's asynchronous startup racing an immediate HTTP request on this loaded host. Added a bounded readiness poll (20 attempts, 0.5-second spacing, quit early on service failure) plus static installer safety regression checks. Local tests now **15 passed, 0 failed**. This hypothesis still requires an actual second host deployment to confirm.
 - Existing `auto.juju-mini.local/` root and Nginx Proxy Manager routes have **not** been changed.
 
+## 2026-11-25 — Further service isolation and operator boot behavior
+
+- The retry of #4481 with the bounded 10-second readiness poll also **failed**, despite all **15** host-side checks passing; the failed unit was stopped and rolled back. Startup timing alone did not explain the problem.
+- Read-only plus bounded ephemeral tests #4483 and #4484 isolated network versus service behavior: the directly invoked Node server successfully served **HTTP 200** on the intended NPM bridge gateway, but a constrained transient systemd service did not. Persistent host/service integration is **not** yet functioning, and the NPM route remains unchanged.
+- A further approved scoped #4485 comparison was queued to identify whether systemd launch configuration or its resource properties cause the difference. No broad system configuration changes are authorized.
+- Added host-specific automatic LIVE connection at the exact `auto.juju-mini.local/office/` origin, reusing existing user authentication; the public/portfolio origin continues to default to synthetic DEMO. One new regression test raises local results to **16 passed**.
+
 ## Pending evidence
 
 - Final read-only host/DNS/proxy evidence and scoped project onboarding.

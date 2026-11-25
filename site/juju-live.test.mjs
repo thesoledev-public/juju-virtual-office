@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mapJujuState,projectJujuJobs} from './juju-live.mjs';
+import {mapJujuState,projectJujuJobs,shouldAutoConnectLive} from './juju-live.mjs';
 
 const NOW=Date.parse('2026-11-25T10:00:00Z');
 const job={id:'job-1',job_key:'task-1',title:'Fix report loading',project:'ATLAS',project_id:'atlas',state:'running',stage:'coding',updated_at:'2026-11-25T09:59:50Z'};
@@ -31,4 +31,11 @@ test('unrecognized state and malformed records fail closed',()=>{
 test('title alone never assigns a social/creative/coding role',()=>{
  const p=projectJujuJobs({items:[{...job,stage:'execution',title:'Post campaign content'}]},NOW);
  assert.equal(p.staff.length,0);
+});
+test('production office auto-connects while the portfolio and other hosts remain demo',()=>{
+ assert.equal(shouldAutoConnectLive('auto.juju-mini.local','/office/'),true);
+ assert.equal(shouldAutoConnectLive('auto.juju-mini.local','/office/tasks'),true);
+ assert.equal(shouldAutoConnectLive('auto.juju-mini.local','/'),false);
+ assert.equal(shouldAutoConnectLive('example.org','/office/'),false);
+ assert.equal(shouldAutoConnectLive('evil-auto.juju-mini.local','/office/'),false);
 });

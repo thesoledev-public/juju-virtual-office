@@ -11,7 +11,7 @@ An expressive, browser-based 2.5D virtual software studio that turns real automa
 - Explore a panoramic 2.5D office, pan/zoom, click any character, or search to locate a role.
 - View a selected worker's task, current state, department, project, pipeline and job reference in the inspector.
 - Filter the scene by project. Browse Tasks, Automation, Projects, Reports and the activity feed.
-- Switch between an explicitly labeled synthetic **DEMO** and read-only **LIVE** mode. LIVE never fabricates current activity; without the private authorized adapter it shows **OFFLINE**.
+- Switch between an explicitly labeled synthetic **DEMO** and read-only **LIVE** mode. LIVE never fabricates current activity; without the private authorized adapter it shows **OFFLINE**. The portfolio/other hosts start in DEMO; only `auto.juju-mini.local/office/` automatically attempts LIVE using the existing JUJU session.
 - Includes Project Manager, Team Lead, Senior Developer, Developer, Creative Designer, QA Engineer, DevOps Engineer, Business Analyst, **Content Writer**, and **Social Media Specialist**.
 
 ## Start the preview
