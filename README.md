@@ -30,6 +30,8 @@ Open `http://127.0.0.1:4381/` from the machine running the app. It binds to loop
 
 For the space-constrained `juju-mini` host, a lower-footprint alternative is included under `deploy/`: a systemd unit template using an integrity-checked, version-pinned copy of the already-installed Node executable on the external JUJU work volume. It remains capped at **128 MB memory and 12% CPU**, protects home directories, and listens only on the Docker `npm_proxy` bridge gateway. It is installed and configured **only** through a separately approved JUJU deployment job. See the private deployment runbook; do not apply it on arbitrary hosts.
 
+Because an actual JUJU deployment proved that NPM's container could not reach the host-bridge-bound service, `deploy/install-sidecar.sh` provides a second, safer NPM-visible option. It reuses the **exact cached image ID** already running Nginx Proxy Manager, only as a Node runtime for a separately named, read-only web container; it performs **no image pull or build**. This tiny sidecar has **128 MB / 0.12 CPU** limits, no host-published port, no access to NPM configuration/data, a read-only public source mount, bounded NPM-to-sidecar health checks, and its own rollback. It deliberately does **not** configure or publish an NPM route. Deploy it only through a separately approved JUJU Job.
+
 ## How live work will connect
 
 The virtual staff are stage/role representations of JUJU Jobs, not ten literal human employees or ten independent execution agents.
