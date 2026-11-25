@@ -1,0 +1,43 @@
+# Interactive vertical slice (M1/M2 early work)
+
+This document describes the running implementation, not an assertion of production acceptance.
+
+## Run locally
+
+```bash
+npm test
+npm run check
+npm start
+```
+
+Visit `http://127.0.0.1:4381`. The static runtime requires Node 20+ and **no third-party npm dependencies**. In the JUJU host environment, the existing Nginx Proxy Manager is the reverse proxy; `npm_proxy` is the shared Docker network, not an npm package registry proxy.
+
+## What exists
+
+- Artistically generated 2.5D isometric environment, an original derivative of the user-approved visual target, including a Content & Social workstation.
+- One atlas of ten distinct character-role visuals, positioned as clickable independent office sprites with selection halo, ambient motion and working/status speech.
+- Navy chrome, project filtering, navigation, task cards, inspector, pipeline, project status, activity ticker, search, zoom/pan and keyboard-focusable worker controls.
+- An **always labelled synthetic DEMO**; the Connect live control expects an authenticated, same-origin `/api/office/v1/snapshot` and deliberately displays OFFLINE instead of pretending there is live work.
+- Snapshot validation, HTML escaping, URL validation and stale-state handling.
+- No remote services, telemetry, private token or arbitrary external write required for the demo.
+
+## What is NOT complete
+
+- The approved mockup's high-fidelity character posing, furniture occlusion and walk/sit/type animation sequences. Current avatars use CSS pose motion on a generated character atlas and may still show minor edge artifacting. This is a **vertical slice, not final art acceptance**.
+- The authorized JUJU read-only adapter, source state/identity validation, per-job detail and live event reconciliation. These belong in the private integration and require host preflight and RBAC checks.
+- NPM/DNS configuration on `juju-mini`, real LAN curl/browser proof and uptime/resource measurement.
+- Mobile and accessibility acceptance, compatibility across browser engines and screenshot comparison approval.
+
+## Deployment shape (requires host verification)
+
+- `juju-office-web` built from the public repository and joined to existing external Docker network `npm_proxy`.
+- Proposed independent host: `juju-virtual-office.juju.home.arpa` → NPM proxy host → `juju-office-web:4381`.
+- `auto.juju-mini.local` currently serves the legacy JUJU Control Center. Never replace its root mapping. The optional `/office/` path requires explicit collision and asset path validation, since the current static page expects absolute `/api/office/` and relative static assets.
+- Private adapter is same-origin behind the reverse proxy, with the existing authenticated JUJU authorization boundary; it must not be included in public assets or expose raw events.
+
+## Implementation guardrails
+
+1. No second workflow engine, queue or scheduler. UI is projection only.
+2. No fabricated claims in LIVE mode. No source record → idle/unassigned, connection lost → disconnected, old heartbeat → stale.
+3. Preserve the user's existing JUJU self-hosted runner and current Control Center route.
+4. Do not deploy from the public CI workflow. Deploy through approved JUJU job after verified preflight.
