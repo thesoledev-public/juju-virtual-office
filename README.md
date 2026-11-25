@@ -46,6 +46,7 @@ The browser expects a same-origin, authenticated `api/office/v1/snapshot` implem
 - [End-to-end plan](docs/PROJECT_PLAN.md)
 - [Binding visual specification](docs/VISUAL_SPEC.md)
 - [Event and role mapping](docs/EVENT_CONTRACT.md)
+- [Frontend snapshot API contract](docs/SNAPSHOT_API.md)
 - [Portfolio and privacy](docs/SECURITY_AND_DEMO.md)
 - [Interactive implementation and limitations](docs/APP_IMPLEMENTATION.md)
 - [Work log](docs/WORK_LOG.md)
