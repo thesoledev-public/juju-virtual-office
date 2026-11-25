@@ -20,6 +20,7 @@ Visit `http://127.0.0.1:4381`. The static runtime requires Node 20+ and **no thi
 - An **always labelled synthetic DEMO**; the Connect live control expects an authenticated, same-origin `/api/office/v1/snapshot` and deliberately displays OFFLINE instead of pretending there is live work.
 - Snapshot validation, HTML escaping, URL validation and stale-state handling.
 - No remote services, telemetry, private token or arbitrary external write required for the demo.
+- Source checks currently run locally with Node's built-in runner. No GitHub-hosted CI is included; any automated source validation must be wired through JUJU's approved self-hosted runner before release.
 
 ## What is NOT complete
 

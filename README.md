@@ -1,33 +1,54 @@
-# JUJU Virtual Office
+# JUJU OFFICE — Living Automation Studio
 
-**JUJU Virtual Office** is an interactive 2.5D virtual software studio designed to visualize authentic development, creative, content, QA, and deployment workflows through animated characters.
+An expressive, browser-based 2.5D virtual software studio that turns real automation work into a navigable office scene. The design follows the approved high-detail isometric reference, with glass meeting rooms, warm lighting, workstation clusters, and ten independently selectable visual roles.
 
-> Project status: **Planning and foundation**. The approved office image is a visual design reference, not a deployed application or a claim of live functionality.
+![Detailed original 2.5D office floor artwork showing planning, creative, development, QA, DevOps and content workstations](site/assets/office-floor.png)
 
-## Product direction
+> **Status:** A runnable, interactive **vertical slice**, not a deployed or production-approved application. The office scene and inspector are functional; the character animation pipeline, verified JUJU adapter, local Nginx Proxy Manager route and LAN acceptance are still in progress. The public demonstration uses **synthetic demo data only**.
 
-- A detailed isometric office with glass meeting rooms, furniture, animated workstations, and expressive 3D-style characters.
-- Ten representative roles: Project Manager, Team Lead, Senior Developer, Developer, Creative Designer, QA Engineer, DevOps Engineer, Analyst, Content Writer, and Social Media Specialist.
-- Clickable employees, task context, project navigation, status bubbles, and a verifiable activity feed.
-- Live operational mode backed by authenticated, read-only task evidence; separately isolated portfolio demo mode with clearly labelled synthetic scenarios.
-- Browser-side animation rendering with resource-aware server integration.
+## Experience
 
-## Architecture principles
+- Explore a panoramic 2.5D office, pan/zoom, click any character, or search to locate a role.
+- View a selected worker's task, current state, department, project, pipeline and job reference in the inspector.
+- Filter the scene by project. Browse Tasks, Automation, Projects, Reports and the activity feed.
+- Switch between an explicitly labeled synthetic **DEMO** and read-only **LIVE** mode. LIVE never fabricates current activity; without the private authorized adapter it shows **OFFLINE**.
+- Includes Project Manager, Team Lead, Senior Developer, Developer, Creative Designer, QA Engineer, DevOps Engineer, Business Analyst, **Content Writer**, and **Social Media Specialist**.
 
-1. JUJU's existing Workspace → Project → Job model and authoritative operational records remain the source of truth.
-2. The office is a visualization layer, not another runner, job scheduler, or autonomous execution authority.
-3. Every live status identifies its provenance and freshness; unverified or missing activity never appears as confirmed work.
-4. The public repository contains no credentials, private task content, internal host configuration, or sensitive logs.
-5. Work follows isolated task branches, pull requests, and the established self-hosted JUJU validation/release process.
+## Start the preview
 
-## Planning documents
+Requires Node.js 20+; no package download or npm dependencies are needed.
 
-The implementation roadmap, visual specification, event contract, security boundaries, and progress log are maintained in the `docs/` directory.
+```bash
+npm test
+npm run check
+npm start
+```
 
-## Portfolio presentation
+Open `http://127.0.0.1:4381/` from the machine running the app. It binds to loopback by default. `HOST=0.0.0.0` is intended only behind the approved reverse proxy or in a controlled development network.
 
-A public demo will reproduce the actual application experience using demonstrably synthetic tasks. Private operational integrations and secrets remain outside the public demonstration.
+`compose.yaml` prepares a separately stoppable web service attached to the existing external Docker network `npm_proxy` — **Nginx Proxy Manager**, not the npm package registry. It has no public port binding. No Docker deployment or DNS modification is performed by this repository.
 
-## Development status
+## How live work will connect
 
-Application implementation, live integration, and deployment have not yet been completed. See the project plan and issue tracker for verified progress.
+The virtual staff are stage/role representations of JUJU Jobs, not ten literal human employees or ten independent execution agents.
+
+```mermaid
+flowchart LR
+    A["Existing JUJU jobs"] --> B["Control Center (authority)"]
+    B --> C["Authorized read-only adapter"]
+    C --> D["JUJU Office visualization"]
+```
+
+The browser expects a same-origin, authenticated `api/office/v1/snapshot` implementing `docs/EVENT_CONTRACT.md`. No secret tokens or private client records belong in this public repository. Public UI source, sample tasks and visual assets remain safely separate from the private integration work.
+
+## Project documentation
+
+- [End-to-end plan](docs/PROJECT_PLAN.md)
+- [Binding visual specification](docs/VISUAL_SPEC.md)
+- [Event and role mapping](docs/EVENT_CONTRACT.md)
+- [Portfolio and privacy](docs/SECURITY_AND_DEMO.md)
+- [Interactive implementation and limitations](docs/APP_IMPLEMENTATION.md)
+- [Work log](docs/WORK_LOG.md)
+- [Project epic](https://github.com/thesoledev-public/juju-virtual-office/issues/9)
+
+Future milestones include production character movement and furniture occlusion, secure job snapshots, NPM/DNS validation on `juju-mini`, responsive UAT and a resource budget that does not slow existing JUJU tasks.
