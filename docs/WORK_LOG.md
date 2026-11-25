@@ -40,6 +40,13 @@ This is a factual work log. Planned tasks are not reported as implemented, teste
 - Known art gap: the generated characters still need consistent seat/walk/type animation frames, silhouette edge cleanup, depth/occlusion and visual comparison before this can be considered faithful to the mockup.
 - Private JUJU host M0 read-only preflight succeeded (private issue #4457, Actions run `45539772630`); selected read-only capacity/routing evidence is being gathered separately because full stdout is local-only.
 
+## 2026-11-25 — First isolated preview attempt and safe rollback
+
+- An exact-revision, approved JUJU modifying job #4481 cloned public revision `f1fe06a5cd61c838af593bbc1cc3908a75ed8369` into `/srv/projects/juju-virtual-office`. All **13** host-side automated tests passed and the service unit was enabled, but its immediately following bridge HTTP check failed with curl exit code 7. The job was correctly marked **failed**; this is not a successful deployment.
+- Separate read-only diagnosis #4482 confirmed the installer rollback left the systemd unit **inactive**, removed it from `/etc/systemd/system/`, archived the failed unit in the office audit directory, and freed port 4381. The site is therefore still **unpublished**.
+- The initial failure is consistent with the service's asynchronous startup racing an immediate HTTP request on this loaded host. Added a bounded readiness poll (20 attempts, 0.5-second spacing, quit early on service failure) plus static installer safety regression checks. Local tests now **15 passed, 0 failed**. This hypothesis still requires an actual second host deployment to confirm.
+- Existing `auto.juju-mini.local/` root and Nginx Proxy Manager routes have **not** been changed.
+
 ## Pending evidence
 
 - Final read-only host/DNS/proxy evidence and scoped project onboarding.

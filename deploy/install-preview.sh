@@ -59,6 +59,25 @@ sudo -n install -m 0644 "$OFFICE_UNIT_CANDIDATE" "$OFFICE_SERVICE_UNIT"
 OFFICE_INSTALLED=1
 sudo -n systemctl daemon-reload
 sudo -n systemctl enable --now juju-office.service
+
+# systemctl enable --now returns once the simple service process has been
+# spawned, not once Node has opened its listener. On a busy juju-mini the first
+# immediate curl can race with startup; allow at most ten seconds of readiness.
+OFFICE_READY=0
+for attempt in {1..20}; do
+  if curl -fsS --connect-timeout 1 --max-time 2 "http://$OFFICE_GATEWAY:4381/healthz" >/dev/null 2>&1; then
+    OFFICE_READY=1
+    break
+  fi
+  if sudo -n systemctl is-failed --quiet juju-office.service; then
+    break
+  fi
+  sleep 0.5
+done
+if [[ "$OFFICE_READY" != 1 ]]; then
+  echo 'JUJU Office preview failed its bounded readiness check' >&2
+  exit 4
+fi
 sudo -n systemctl is-active --quiet juju-office.service
 
 check_http() {
