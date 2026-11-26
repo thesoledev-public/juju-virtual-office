@@ -10,7 +10,13 @@ test('static server serves the scene and does not fake live API', async () => {
   try {
     const html = await fetch(`http://127.0.0.1:${port}/`);
     assert.equal(html.status,200);
+    assert.match(html.headers.get('cache-control'),/no-cache/);
     assert.match(await html.text(), /JUJU OFFICE/);
+    for (const asset of ['app.js','styles.css','juju-live.mjs']) {
+      const response=await fetch(`http://127.0.0.1:${port}/${asset}`);
+      assert.equal(response.status,200);
+      assert.match(response.headers.get('cache-control'),/no-cache/,asset);
+    }
     const typingSprite = await fetch(`http://127.0.0.1:${port}/assets/developer-typing-rear.webp`);
     assert.equal(typingSprite.status,200);
     assert.equal(typingSprite.headers.get('content-type'),'image/webp');

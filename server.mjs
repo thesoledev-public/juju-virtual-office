@@ -40,7 +40,10 @@ export function handler(req, res) {
   const absolute = resolve(BASE, '.' + normalize(pathname));
   if (absolute !== BASE && !absolute.startsWith(BASE + sep)) { res.writeHead(403).end(); return; }
   if (!existsSync(absolute) || !statSync(absolute).isFile()) { res.writeHead(404).end(); return; }
-  const headers = { 'Content-Type': TYPES[extname(absolute)] || 'application/octet-stream', 'Cache-Control': absolute.endsWith('index.html') ? 'no-cache' : 'public, max-age=3600' };
+  // These URLs are not content-hashed. Revalidate code on every navigation so
+  // an Office release cannot leave a browser running last hour's live logic.
+  const revalidate = absolute.endsWith('index.html') || /\.(?:js|mjs|css)$/.test(absolute);
+  const headers = { 'Content-Type': TYPES[extname(absolute)] || 'application/octet-stream', 'Cache-Control': revalidate ? 'no-cache, must-revalidate' : 'public, max-age=3600' };
   res.writeHead(200, headers);
   if (req.method === 'HEAD') res.end(); else createReadStream(absolute).pipe(res);
 }
