@@ -1,0 +1,125 @@
+#!/usr/bin/env bash
+# Only invoke from an approved, exact-revision JUJU host Job. This script
+# intentionally does not modify DNS, NPM, JUJU Control Center or other sites.
+set -Eeuo pipefail
+set +x
+
+OFFICE_EXPECTED_SHA="${1:-}"
+OFFICE_PROJECT_DIR='/srv/projects/juju-virtual-office'
+OFFICE_SERVICE_UNIT='/etc/systemd/system/juju-office.service'
+OFFICE_AUDIT_DIR='/srv/juju-work/juju-office-preview-audit'
+OFFICE_RUNTIME_DIR='/srv/juju-work/juju-office-runtime'
+OFFICE_NODE_SOURCE='/home/juju/.nvm/versions/node/v24.13.0/bin/node'
+OFFICE_NODE_TARGET="$OFFICE_RUNTIME_DIR/node-v24.13.0"
+OFFICE_INSTALLED=0
+
+if [[ ! "$OFFICE_EXPECTED_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+  echo 'Invalid requested revision' >&2
+  exit 2
+fi
+test "$(hostname)" = juju-mini
+test "$(id -un)" = juju
+test -d "$OFFICE_PROJECT_DIR/.git"
+test ! -e "$OFFICE_SERVICE_UNIT"
+test "$(git -C "$OFFICE_PROJECT_DIR" rev-parse HEAD)" = "$OFFICE_EXPECTED_SHA"
+test -f "$OFFICE_PROJECT_DIR/site/index.html"
+test -f "$OFFICE_PROJECT_DIR/site/assets/office-floor.png"
+test -f "$OFFICE_PROJECT_DIR/site/assets/worker-atlas.png"
+test -f "$OFFICE_PROJECT_DIR/site/assets/developer-typing.png"
+test -x "$OFFICE_NODE_SOURCE"
+test "$("$OFFICE_NODE_SOURCE" --version)" = v24.13.0
+test "$(df -Pk / | awk 'NR==2{print $4}')" -gt 4194304
+test "$(df -Pk /srv/juju-work | awk 'NR==2{print $4}')" -gt 1048576
+test "$(awk '/MemAvailable:/{print $2}' /proc/meminfo)" -gt 1048576
+
+if curl -fsS --connect-timeout 2 --max-time 4 http://127.0.0.1:4381/healthz >/dev/null; then
+  echo 'Port 4381 is already serving a health endpoint' >&2
+  exit 3
+fi
+
+OFFICE_GATEWAY="$(docker network inspect npm_proxy --format '{{(index .IPAM.Config 0).Gateway}}')"
+OFFICE_UNIT_CANDIDATE="/tmp/juju-office-$OFFICE_EXPECTED_SHA.service"
+test ! -e "$OFFICE_UNIT_CANDIDATE"
+
+# All source checks run before any host service mutation.
+cd "$OFFICE_PROJECT_DIR"
+node --test site/*.test.mjs deploy/*.test.mjs server.test.mjs
+node --check site/app.js
+node --check site/juju-live.mjs
+node --check server.mjs
+node deploy/render-unit.mjs "$OFFICE_GATEWAY" "$OFFICE_NODE_TARGET" "$OFFICE_UNIT_CANDIDATE"
+
+# Systemd does not inherit the runner's NVM PATH, and ProtectHome=true must
+# remain in place. Use a root-owned copy on the spacious external mount. Only
+# the exact observed v24.13.0 binary is eligible for this first rollout.
+sudo -n install -d -o root -g root -m 0755 "$OFFICE_RUNTIME_DIR"
+if [[ ! -e "$OFFICE_NODE_TARGET" ]]; then
+  sudo -n install -o root -g root -m 0755 "$OFFICE_NODE_SOURCE" "$OFFICE_NODE_TARGET"
+fi
+test "$(stat -Lc '%U:%G' "$OFFICE_NODE_TARGET")" = root:root
+test "$(sha256sum "$OFFICE_NODE_SOURCE" | awk '{print $1}')" = "$(sha256sum "$OFFICE_NODE_TARGET" | awk '{print $1}')"
+test "$("$OFFICE_NODE_TARGET" --version)" = v24.13.0
+
+rollback_own_unit() {
+  result=$?
+  if [[ "$OFFICE_INSTALLED" == 1 && "$result" != 0 ]]; then
+    sudo -n systemctl disable --now juju-office.service >/dev/null 2>&1 || true
+    sudo -n install -d -m 0750 "$OFFICE_AUDIT_DIR" || true
+    sudo -n mv "$OFFICE_SERVICE_UNIT" "$OFFICE_AUDIT_DIR/failed-$OFFICE_EXPECTED_SHA.service" || true
+    sudo -n systemctl daemon-reload >/dev/null 2>&1 || true
+  fi
+  return "$result"
+}
+trap rollback_own_unit EXIT
+
+sudo -n install -m 0644 "$OFFICE_UNIT_CANDIDATE" "$OFFICE_SERVICE_UNIT"
+OFFICE_INSTALLED=1
+sudo -n systemctl daemon-reload
+sudo -n systemctl enable --now juju-office.service
+
+# systemctl enable --now returns once the simple service process has been
+# spawned, not once Node has opened its listener. On a busy juju-mini the first
+# immediate curl can race with startup; allow at most ten seconds of readiness.
+OFFICE_READY=0
+for attempt in {1..20}; do
+  if curl -fsS --connect-timeout 1 --max-time 2 "http://$OFFICE_GATEWAY:4381/healthz" >/dev/null 2>&1; then
+    OFFICE_READY=1
+    break
+  fi
+  if sudo -n systemctl is-failed --quiet juju-office.service; then
+    break
+  fi
+  sleep 0.5
+done
+if [[ "$OFFICE_READY" != 1 ]]; then
+  echo 'JUJU Office preview failed its bounded readiness check' >&2
+  exit 4
+fi
+sudo -n systemctl is-active --quiet juju-office.service
+
+check_http() {
+  local path="$1" expected="$2" actual
+  actual="$(curl --connect-timeout 3 --max-time 8 -s -o /dev/null -w '%{http_code}' "http://$OFFICE_GATEWAY:4381$path")"
+  printf 'JUJU_EVIDENCE office_preview_path=%s status=%s\n' "$path" "$actual"
+  test "$actual" = "$expected"
+}
+check_http /healthz 200
+check_http /office/ 200
+check_http /office/app.js 200
+check_http /office/assets/office-floor.png 200
+check_http /office/api/office/v1/snapshot 501
+check_http / 404
+
+# NPM integration is a separate, independently approved change. Its container
+# may not yet route to this isolated host listener. Report that fact without
+# rolling back a healthy, unexposed, capped internal preview.
+if timeout 8s docker exec nginx-proxy-manager node -e "fetch('http://$OFFICE_GATEWAY:4381/office/',{signal:AbortSignal.timeout(5000)}).then(r=>{console.log('JUJU_EVIDENCE office_npm_to_preview_status='+r.status);process.exit(r.status===200?0:1)}).catch(()=>process.exit(1))"; then
+  printf 'JUJU_EVIDENCE office_preview_npm_reachable=yes\n'
+else
+  printf 'JUJU_EVIDENCE office_preview_npm_reachable=no\n'
+fi
+
+printf 'JUJU_EVIDENCE office_preview_service=active\n'
+printf 'JUJU_EVIDENCE office_preview_sha=%s\n' "$OFFICE_EXPECTED_SHA"
+printf 'JUJU_EVIDENCE office_preview_npm_route=not_configured\n'
+printf 'JUJU_EVIDENCE office_preview_publication=not_published\n'

@@ -1,0 +1,38 @@
+[Unit]
+Description=JUJU Virtual Office read-only web preview
+Documentation=https://github.com/thesoledev-public/juju-virtual-office
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=juju
+Group=juju
+WorkingDirectory=/srv/projects/juju-virtual-office
+Environment=NODE_ENV=production
+Environment=HOST=__NPM_BRIDGE_GATEWAY__
+Environment=PORT=4381
+Environment=PUBLIC_BASE_PATH=/office
+ExecStartPre=/usr/bin/test -f /srv/projects/juju-virtual-office/site/index.html
+ExecStart=__OFFICE_NODE_EXECUTABLE__ /srv/projects/juju-virtual-office/server.mjs
+Restart=on-failure
+RestartSec=5
+TimeoutStartSec=20
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectHome=true
+ProtectSystem=strict
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+LockPersonality=true
+RestrictRealtime=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+MemoryMax=128M
+CPUQuota=12%
+TasksMax=64
+UMask=0027
+
+[Install]
+WantedBy=multi-user.target

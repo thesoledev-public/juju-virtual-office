@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#101c35" />
+    <meta name="description" content="JUJU Office: an animated 2.5D software studio that makes automation work visible." />
+    <title>JUJU OFFICE — A Living Automation Studio</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='8' y='16' width='48' height='38' rx='12' fill='%232a72e8'/%3E%3Ccircle cx='24' cy='35' r='5' fill='white'/%3E%3Ccircle cx='40' cy='35' r='5' fill='white'/%3E%3Cpath d='M25 47Q32 52 39 47' stroke='white' stroke-width='3' fill='none'/%3E%3C/svg%3E" />
+    <link rel="stylesheet" href="./styles.css" />
+    <script type="module" src="./app.js"></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="#office" aria-label="JUJU Office home">
+          <span class="robot-mark" aria-hidden="true"><span class="robot-ear ear-left"></span><span class="robot-ear ear-right"></span><span class="robot-eyes"><i></i><i></i></span><span class="robot-mouth"></span></span>
+          <strong>JUJU OFFICE</strong>
+        </a>
+        <span class="header-divider"></span>
+        <span class="mode-badge" id="mode-badge"><span class="status-light"></span> DEMO</span>
+        <div class="header-tagline">A living automation office for real projects <span class="tagline-dot">·</span> Plan <span>Build</span> Test <span>Deploy</span></div>
+        <div class="header-actions">
+          <button class="header-icon" id="search-trigger" aria-label="Search workers and tasks" title="Search"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"></circle><path d="m16 16 5 5"></path></svg></button>
+          <button class="header-icon" id="notifications-trigger" aria-label="See recent activity" title="Activity"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9ZM10 21h4"></path></svg><span class="notification-dot"></span></button>
+          <button class="header-icon" id="help-trigger" aria-label="How this works" title="How this works"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M9 9a3 3 0 0 1 6 1c0 2-3 2-3 4m0 3v.1"></path></svg></button>
+          <div class="avatar-identity" title="Portfolio demonstration">J<span class="availability-dot"></span></div>
+        </div>
+      </header>
+      <aside class="sidebar" aria-label="Primary navigation">
+        <nav class="main-nav" id="main-nav">
+          <button class="nav-link active" data-view="office"><span class="nav-symbol">⌂</span><span>Office</span></button>
+          <button class="nav-link" data-view="tasks"><span class="nav-symbol">☑</span><span>Tasks</span></button>
+          <button class="nav-link" data-view="automation"><span class="nav-symbol">ϟ</span><span>Automation</span></button>
+          <button class="nav-link" data-view="projects"><span class="nav-symbol">▱</span><span>Projects</span></button>
+          <button class="nav-link" data-view="reports"><span class="nav-symbol">▥</span><span>Reports</span></button>
+        </nav>
+        <div class="projects-header"><span>PROJECTS <span id="project-count"></span></span><button id="all-projects" class="tiny-plus" aria-label="Show all projects">+</button></div>
+        <div id="project-cards" class="project-cards"></div>
+        <div class="sidebar-footer">
+          <div class="sidebar-tip"><span class="tip-icon">✦</span><div><b>Every role has a story</b><small>Select any employee in the office to see their work.</small></div></div>
+          <button id="mode-toggle" class="mode-toggle"><span class="toggle-icon">◉</span> <span id="mode-toggle-label">Connect live</span> <span>↗</span></button>
+        </div>
+      </aside>
+      <main class="stage" aria-label="Virtual office">
+        <div class="stage-topline">
+          <span class="scene-section"><span class="scene-dot"></span><span id="scene-title">The studio floor</span> <span id="scene-caption">10 departments &amp; roles</span></span>
+          <div class="floor-controls" aria-label="Office scene controls"><button id="zoom-out" aria-label="Zoom out" title="Zoom out">−</button><span id="zoom-readout">100%</span><button id="zoom-in" aria-label="Zoom in" title="Zoom in">+</button><button id="scene-reset" title="Recenter office" aria-label="Recenter office">⌖</button></div>
+        </div>
+        <div id="live-connection" class="live-connection" role="status" aria-live="polite" hidden>
+          <span class="connection-orb" aria-hidden="true">◌</span>
+          <div class="connection-body"><strong id="connection-title">Connecting to JUJU</strong><p id="connection-message">Awaiting authorized tasks.</p>
+            <div class="connection-actions"><a id="connection-login" href="/" target="_blank" rel="noopener noreferrer">Open JUJU Control Center ↗</a><button type="button" id="connection-retry">↻ Retry live</button></div>
+          </div>
+        </div>
+        <div class="floor-viewport" id="floor-viewport" tabindex="0" aria-label="Scrollable isometric office; use the scrollbars or shift and mouse wheel to pan">
+          <div class="floor-world" id="floor-world">
+            <img class="floor-art" src="./assets/office-floor.png" alt="Detailed 2.5D isometric office with glass planning room, creative desks, development workstations, test lab, server infrastructure and a content studio" draggable="false" />
+            <div class="room-tag planning-tag"><span>▦</span> Project Manager / Planning</div>
+            <div class="room-tag creative-tag"><span>✎</span> Creative Team</div>
+            <div class="room-tag dev-tag"><span>⌘</span> Developers</div>
+            <div class="room-tag qa-tag"><span>⚗</span> QA Test Lab</div>
+            <div class="room-tag ops-tag"><span>∞</span> DevOps</div>
+            <div class="room-tag content-tag"><span>✦</span> Content &amp; Social</div>
+            <div id="people-layer" class="people-layer" aria-label="Select an employee"></div>
+            <div class="floor-vignette"></div>
+          </div>
+        </div>
+        <div class="floor-hint" id="floor-hint">✥ Drag or scroll to explore the office <span>·</span> Select a worker to inspect their task</div>
+        <section id="view-panel" class="view-panel" hidden aria-live="polite"></section>
+      </main>
+      <aside class="inspector" id="inspector" aria-label="Selected team member"><div id="inspector-content"></div></aside>
+      <footer class="activity-bar" aria-label="Recent activity">
+        <div class="activity-heading"><span class="broadcast-circle">◉</span><strong>Activity Feed</strong></div>
+        <div class="activity-items" id="activity-items"></div>
+        <button class="activity-more" id="feed-more" aria-label="Show all activity">•••</button>
+      </footer>
+      <div class="toast" id="toast" aria-live="polite" hidden></div>
+      <div class="modal-backdrop" id="modal-backdrop" hidden><div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"><button class="modal-close" id="modal-close" aria-label="Close">✕</button><h2 id="modal-title"></h2><div id="modal-body"></div></div></div>
+    </div>
+  </body>
+</html>

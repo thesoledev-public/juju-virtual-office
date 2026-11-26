@@ -1,0 +1,14 @@
+{
+  "name": "juju-virtual-office",
+  "version": "0.1.0",
+  "private": true,
+  "description": "JUJU Office — read-only, 2.5D animated living automation studio",
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node server.mjs",
+    "dev": "node --watch server.mjs",
+    "test": "node --test site/*.test.mjs deploy/*.test.mjs server.test.mjs",
+    "check": "node --check site/app.js && node --check site/data.mjs && node --check site/projection.mjs && node --check site/juju-live.mjs && node --check deploy/render-unit.mjs && node --check server.mjs"
+  }
+}
