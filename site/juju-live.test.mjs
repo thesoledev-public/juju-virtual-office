@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mapJujuState,projectJujuJobs,shouldAutoConnectLive} from './juju-live.mjs';
+import {authFailure,mapJujuState,projectJujuJobs,shouldAutoConnectLive} from './juju-live.mjs';
 
 const NOW=Date.parse('2026-11-25T10:00:00Z');
 const job={id:'job-1',job_key:'task-1',title:'Fix report loading',project:'ATLAS',project_id:'atlas',state:'running',stage:'coding',updated_at:'2026-11-25T09:59:50Z'};
@@ -22,6 +22,20 @@ test('projects do not get invented completion percentages or additional role act
  const p=projectJujuJobs({items:[job,{...job,id:'job-2',job_key:'task-2',stage:'planning',title:'Plan sprint'}]},NOW);
  assert.equal(p.staff.length,2);assert.deepEqual(p.staff.map(s=>s.id),['dani','maya']);
  assert.equal(p.projects[0].progress,null);
+});
+test('real project names and unfinished jobs remain visible without pretending queued jobs are being executed',()=>{
+ const p=projectJujuJobs({items:[
+   {...job,id:'yv-run',project:'YVIRSONE',project_id:'yvirsone',state:'running',stage:'testing',title:'Run YVIRSONE regression tests'},
+   {...job,id:'incl-queue',project:'IncluzIT HOME',project_id:'incluzit',state:'queued',stage:'execution',title:'Fix account deletion flow'},
+   {...job,id:'incl-block',project:'IncluzIT HOME',project_id:'incluzit',state:'blocked',stage:'execution',title:'Verify staging email'}
+ ]},NOW);
+ assert.deepEqual(p.projects.map(x=>x.name),['YVIRSONE','IncluzIT HOME']);
+ assert.match(p.projects[0].subtitle,/1 running/);
+ assert.match(p.projects[1].subtitle,/1 waiting/);
+ assert.match(p.projects[1].subtitle,/1 blocked/);
+ assert.equal(p.projects[1].progress,null);
+ assert.deepEqual(p.staff.map(x=>x.id),['erin']);
+ assert.equal(p.activity.length,3);
 });
 test('unrecognized state and malformed records fail closed',()=>{
  assert.equal(mapJujuState('hmm'),'unknown');
@@ -58,4 +72,9 @@ test('production office auto-connects while the portfolio and other hosts remain
  assert.equal(shouldAutoConnectLive('auto.juju-mini.local','/'),false);
  assert.equal(shouldAutoConnectLive('example.org','/office/'),false);
  assert.equal(shouldAutoConnectLive('evil-auto.juju-mini.local','/office/'),false);
+});
+test('expired session and denied permission are distinct from transport failure',()=>{
+ assert.equal(authFailure(401),'JUJU sign-in required');
+ assert.equal(authFailure(403),'JUJU jobs.view permission required');
+ assert.equal(authFailure(502),null);
 });

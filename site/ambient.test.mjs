@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { AMBIENT_INTERVAL_MS, ambientAction, ambientBeat, isAmbientMotion, isSeatedAtComputer, scenePosition } from './ambient.mjs';
+import { AMBIENT_INTERVAL_MS, ambientAction, ambientBeat, isAmbientMotion, isSeatedAtComputer, scenePosition, sceneRoute } from './ambient.mjs';
 import { ROLE_IDS } from './projection.mjs';
 
 test('ambient actions are deterministic, visually distinct and never claim a JUJU Job', () => {
@@ -14,8 +14,8 @@ test('ambient actions are deterministic, visually distinct and never claim a JUJ
   }
   assert.equal(ambientAction('maya', 0).motion, 'chat');
   assert.equal(ambientAction('leo', 0).motion, 'chat');
-  assert.equal(ambientAction('milo', 0).motion, 'phone');
-  assert.equal(ambientAction('noah', 0).motion, 'walk');
+  assert.equal(ambientAction('milo', 0).motion, 'camera');
+  assert.equal(ambientAction('noah', 1).motion, 'walk');
 });
 
 test('scene positions avoid the workstation until a verified work state exists', () => {
@@ -25,7 +25,7 @@ test('scene positions avoid the workstation until a verified work state exists',
     for (const p of [idle, work]) {
       assert.ok(p.x >= 8 && p.x <= 96);
       assert.ok(p.y >= 18 && p.y <= 82);
-      assert.ok(Math.abs(p.dx) <= 26 && Math.abs(p.dy) <= 12);
+      assert.ok(Math.abs(p.dx) <= 4 && Math.abs(p.dy) <= 4);
     }
   }
   assert.notDeepEqual(scenePosition('dani'), scenePosition('dani', true));
@@ -34,6 +34,27 @@ test('scene positions avoid the workstation until a verified work state exists',
   assert.equal(isSeatedAtComputer('dani', true), true);
   assert.equal(isSeatedAtComputer('noah', true), true);
   assert.equal(isSeatedAtComputer('aria', true), false);
+});
+
+test('walking only reaches explicitly calibrated clear-floor waypoints', () => {
+  for (const id of ROLE_IDS) {
+    const path=sceneRoute(id);
+    assert.equal(path.length,3);
+    for (const [x,y] of path) {
+      assert.ok(x >= 20 && x <= 95);
+      assert.ok(y >= 30 && y <= 82);
+    }
+    for (let beat=0;beat<16;beat++) {
+      const spot=scenePosition(id,false,beat);
+      if (ambientAction(id,beat).motion !== 'walk') {
+        assert.equal(spot.dx,0);
+        assert.equal(spot.dy,0);
+      } else {
+        assert.deepEqual([spot.x+spot.dx,spot.y+spot.dy],path[1]);
+        assert.deepEqual([spot.x+spot.mx,spot.y+spot.my],path[2]);
+      }
+    }
+  }
 });
 
 test('ambient beats progress on a bounded wall-clock interval', () => {

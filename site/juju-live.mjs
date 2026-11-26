@@ -10,12 +10,16 @@ const ROLE_NAMES = Object.freeze({
 });
 
 const ACTIVE_STATES = new Set(['running', 'executing', 'in_progress']);
-const KNOWN_STATES = new Set(['queued','claimed','ready','pending','running','executing','in_progress','reviewing','testing','deploying','blocked','failed','succeeded','cancelled','canceled','waiting_approval','awaiting_approval']);
+const KNOWN_STATES = new Set(['queued','claimed','ready','pending','running','executing','in_progress','planning','investigating','reviewing','testing','deploying','blocked','failed','succeeded','cancelled','canceled','waiting_approval','awaiting_approval']);
 
 // The public portfolio preview starts in explicit DEMO mode. Only the
 // operator's existing JUJU origin is eligible for automatic LIVE attachment.
 export function shouldAutoConnectLive(hostname, pathname) {
   return hostname === 'auto.juju-mini.local' && pathname.startsWith('/office/');
+}
+
+export function authFailure(status) {
+  return status === 401 ? 'JUJU sign-in required' : status === 403 ? 'JUJU jobs.view permission required' : null;
 }
 
 export function mapJujuState(value) {
@@ -79,13 +83,16 @@ export function projectJujuJobs(response, now = Date.now()) {
     if (!seenProjects.has(projectID)) seenProjects.set(projectID, {
       id: projectID, name: safeString(job.project, 70), subtitle:'Authorized JUJU project',
       icon: safeString(job.project,1).toUpperCase(), color: seenProjects.size % 2 ? 'teal':'violet',
-      progress: null, state:'unknown'
+      progress: null, state:'unknown', _running:0, _queued:0, _blocked:0
     });
     const project = seenProjects.get(projectID);
     const mapped = mapJujuState(job.state);
     const updatedAt = Date.parse(job.updated_at);
     const age = Number.isFinite(updatedAt) ? now - updatedAt : Number.POSITIVE_INFINITY;
     const stale = age > 120_000 || age < -30_000;
+    if (mapped === 'running') project._running++;
+    if (['queued','awaiting_approval'].includes(mapped)) project._queued++;
+    if (['blocked','failed'].includes(mapped)) project._blocked++;
     if (mapped === 'running') {
       if (!stale) project.state = 'running';
       else if (project.state !== 'running') project.state = 'stale';
@@ -110,6 +117,19 @@ export function projectJujuJobs(response, now = Date.now()) {
       message: safeString(`${job.title} · ${mapped === 'unknown' ? 'Unknown state' : mapped}`,200),
       status:mapped,when:Number.isFinite(age) && age >= 0 ? relativeAge(age) : 'Update time unknown'
     });
+  }
+  // Backlog records are real JUJU work, but a queued, blocked or stale job
+  // must never animate an employee as if execution were in progress.
+  for (const project of seenProjects.values()) {
+    const parts = [];
+    if (project._running) parts.push(`${project._running} running`);
+    if (project._queued) parts.push(`${project._queued} waiting`);
+    if (project._blocked) parts.push(`${project._blocked} blocked/failed`);
+    project.subtitle = safeString(parts.join(' · ') || 'No current tasks in recent JUJU jobs',100);
+    if (project.state === 'unknown' && project._queued) project.state='queued';
+    delete project._running;
+    delete project._queued;
+    delete project._blocked;
   }
   return {
     schema_version:'1.0',mode:'live',observed_at:new Date(now).toISOString(),

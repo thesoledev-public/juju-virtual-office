@@ -62,3 +62,29 @@ button,input{font:inherit}button{cursor:pointer}button:focus-visible,a:focus-vis
 @media (max-width:990px){.app-shell{grid-template-columns:76px minmax(350px,1fr) 260px}.sidebar .main-nav{padding:14px 8px}.nav-link{padding:10px 15px}.nav-link span:last-child,.projects-header,.project-cards,.sidebar-footer,.sidebar .main-nav .nav-link .nav-symbol+span{display:none}.nav-link .nav-symbol{font-size:25px}.header-tagline{display:none}.inspector-card{padding:12px}.profile-avatar{width:73px;height:85px}.profile-name{font-size:16px}.profile-role{font-size:12px}.detail-value{font-size:14px}.activity-item:nth-child(n+3){display:none}.activity-heading strong{font-size:13px}}
 @media (max-width:720px){html,body{overflow:auto}.app-shell{height:auto;min-height:100dvh;grid-template-columns:1fr;grid-template-rows:64px 57px minmax(450px,63dvh) auto 70px}.topbar{grid-column:1;grid-row:1}.topbar .header-divider,.topbar .header-actions .header-icon:nth-child(n+2){display:none}.brand strong{font-size:20px}.robot-mark{transform:scale(.85);margin-right:-6px}.mode-badge{font-size:11px;padding:5px 9px}.sidebar{grid-column:1;grid-row:2;overflow:auto;border-bottom:1px solid #344d73}.main-nav{display:flex;gap:3px;padding:7px 9px!important;justify-content:space-around}.nav-link{padding:8px 10px}.sidebar .main-nav .nav-link .nav-symbol+span{display:inline;font-size:10px}.nav-symbol{font-size:20px!important}.stage{grid-column:1;grid-row:3}.inspector{grid-column:1;grid-row:4;max-height:none;padding:10px}.inspector-card{min-height:0}.person-profile{justify-content:flex-start}.profile-avatar{width:96px;height:103px}.inspector-rule{margin:13px 0}.activity-bar{grid-column:1;grid-row:5}.activity-heading{padding:0 10px}.activity-heading strong{font-size:12px}.activity-item:nth-child(n+2){display:none}.floor-hint{font-size:10px}.stage-topline{left:8px;right:8px}.room-tag{font-size:12px}.view-panel{inset:50px 8px 26px;padding:18px}}
 @media (prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.001ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.001ms!important}}
+
+/* Office life refinement: avatars are scaled to the pictured furniture and
+   move only along short, calibrated open-floor paths. Each prop is attached
+   to its own character; no gesture can move the global scene layer. */
+.person{width:clamp(64px,7%,112px)}
+.person.sitting{width:clamp(74px,9%,126px)}
+.person.ambient-walk{animation:office-wander 9.8s ease-in-out infinite;animation-delay:var(--phase)}
+.person.ambient-plan .character,.person.ambient-whiteboard .character{animation:office-plan 3s ease-in-out infinite;animation-delay:var(--delay)}
+.person.ambient-camera .character{animation:office-camera 3.8s ease-in-out infinite;animation-delay:var(--delay)}
+.person.ambient-wave .character{animation:office-wave 2.7s ease-in-out infinite;animation-delay:var(--delay)}
+.person.ambient-relax .character{animation:office-relax 4.5s ease-in-out infinite;animation-delay:var(--delay)}
+.person.ambient-plan .ambient-prop,.person.ambient-whiteboard .ambient-prop{right:9%;top:37%}
+.person.ambient-camera .ambient-prop{right:1%;top:28%}
+.person .speech{font-size:11px;padding:7px 10px}
+.person.ambient .ambient-prop{width:25px;height:25px;font-size:17px}
+@keyframes office-wander{
+  0%,100%{transform:translate(-50%,-83%)}
+  17%{transform:translate(calc(-50% + var(--wander-third-x)),calc(-83% + var(--wander-third-y))}
+  40%{transform:translate(calc(-50% + var(--wander-x)),calc(-83% + var(--wander-y)))}
+  67%{transform:translate(calc(-50% + var(--wander-mid-x)),calc(-83% + var(--wander-mid-y)))}
+  85%{transform:translate(-50%,-83%)}
+}
+@keyframes office-plan{0%,100%{transform:translateY(0) rotate(-2deg)}28%{transform:translateY(-3px) rotate(3deg)}67%{transform:translateY(1px) rotate(-1deg)}}
+@keyframes office-camera{0%,100%{transform:translateY(0) rotate(0deg)}28%{transform:translateY(-4px) rotate(-3deg)}56%{transform:translateY(-2px) rotate(3deg)}}
+@keyframes office-wave{0%,100%{transform:translateY(0) rotate(0)}24%{transform:translateY(-4px) rotate(-3deg)}42%{transform:translateY(-1px) rotate(3deg)}68%{transform:translateY(-3px) rotate(-2deg)}}
+@keyframes office-relax{0%,100%{transform:translateY(0)}50%{transform:translateY(3px) rotate(1deg)}}

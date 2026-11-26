@@ -1,6 +1,6 @@
 import { demoSnapshot } from './data.mjs';
 import { escapeHTML as h, isActive, normalizedState, sanitizeSnapshot, stateText } from './projection.mjs';
-import { projectJujuJobs, shouldAutoConnectLive } from './juju-live.mjs';
+import { authFailure, projectJujuJobs, shouldAutoConnectLive } from './juju-live.mjs';
 import { AMBIENT_INTERVAL_MS, ambientAction, ambientBeat, isSeatedAtComputer, scenePosition } from './ambient.mjs';
 
 // JUJU Office is a read-only projection, never a second task scheduler.
@@ -45,14 +45,15 @@ function renderMode() {
   const badge = $('mode-badge');
   const available = ['connected', 'stale'].includes(state.connection);
   badge.className = `mode-badge ${state.mode === 'live' ? (available ? 'live' : 'disconnected') : ''}`;
-  badge.innerHTML = `<span class="status-light"></span> ${state.mode === 'demo' ? 'DEMO' : available ? (state.connection === 'stale' ? 'STALE' : 'LIVE') : 'OFFLINE'}`;
+  badge.innerHTML = `<span class="status-light"></span> ${state.mode === 'demo' ? 'DEMO' : available ? (state.connection === 'stale' ? 'STALE' : 'LIVE') : state.connection === 'unauthorized' ? 'SIGN IN' : state.connection === 'forbidden' ? 'NO ACCESS' : 'OFFLINE'}`;
   $('mode-toggle-label').textContent = state.mode === 'demo' ? 'Connect live' : 'Return to demo';
   $('scene-caption').textContent = state.mode === 'demo' ? 'Real animations · synthetic jobs' : available ? 'Authorized JUJU jobs · read-only' : state.connection === 'unauthorized' ? 'JUJU sign-in required' : 'Ambient life · no verified tasks';
   const banner = $('live-connection');
   banner.hidden = state.mode !== 'live' || available;
-  $('connection-title').textContent = state.connection === 'unauthorized' ? 'Sign in to see live JUJU work' : 'Office life continues while JUJU is disconnected';
+  $('connection-title').textContent = state.connection === 'unauthorized' ? 'Connect your JUJU session to see real work' : state.connection === 'forbidden' ? 'Your session cannot view JUJU jobs' : 'Office life continues while JUJU is disconnected';
   $('connection-message').textContent = state.connection === 'unauthorized'
-    ? 'Open the Control Center and sign in with your existing account. Then retry. These ambient gestures are not task activity.'
+    ? 'Use Open JUJU Control Center to sign in, then return here and click Retry live. This view does not request or store your password. Gestures shown meanwhile are only ambient.'
+    : state.connection === 'forbidden' ? 'Your JUJU account needs jobs.view permission. Sign in with an authorized account or ask the administrator to grant it. Ambient activity is not source-backed work.'
     : `${state.lastLiveError ? `Connection: ${state.lastLiveError}. ` : 'Waiting for the live jobs feed. '}The team can chat, take breaks and walk, but no work is claimed without JUJU evidence.`;
   $('connection-login').hidden = !SAME_ORIGIN_JUJU_ALLOWED;
 }
@@ -73,21 +74,31 @@ function renderPeople() {
   const actors = roleRoster();
   const beat = ambientBeat();
   const phase = (Date.now() % AMBIENT_INTERVAL_MS) / 1000;
+  const world = $('floor-world');
+  const previous = new Map(Array.from($('people-layer').children, node => [node.dataset.person,{x:node.style.left,y:node.style.top}]));
   $('people-layer').innerHTML = actors.map((p, i) => {
     const dimmed = state.project && p.project_id !== state.project;
     const working = isActive(p.state);
     const action = working ? null : ambientAction(p.id,beat);
-    const position = scenePosition(p.id,working);
+    const position = scenePosition(p.id,working,beat);
     const seated = isSeatedAtComputer(p.id,working);
     const artPosition = seated ? `${p.id === 'dani' ? 0 : 100}% 0%` : glyph(p.sprite);
     const bubbleText = working ? p.bubble : `${action.icon} ${action.label}`;
     const bubble = bubbleText ? `<span class="speech ${action ? 'ambient-speech' : ''}">${h(bubbleText)}</span>` : '';
     const highlighted = state.selected === p.id || (!dimmed && (working ? [2,5,6,8].includes(i) : [0,1,3,9].includes(i)));
     return `<button type="button" class="person role-${h(p.id)} ${personClass(p)} ${action ? `ambient ambient-${action.motion}` : ''} ${seated ? 'sitting' : ''} ${state.selected === p.id ? 'selected' : ''} ${highlighted ? 'bubble-highlight' : ''} ${dimmed ? 'dimmed' : ''}" data-person="${h(p.id)}"
-      style="left:${position.x}%;top:${position.y}%;--wander-x:${position.dx}px;--wander-y:${position.dy}px;--wander-x-quarter:${position.dx*.25}px;--wander-y-quarter:${position.dy*.25}px;--wander-x-eighty:${position.dx*.8}px;--wander-y-eighty:${position.dy*.8}px;--delay:-${(i % 5) * .41}s;--phase:-${phase.toFixed(2)}s" aria-label="${h(p.role)}: ${working ? h(p.task || stateText(p.state)) : `Ambient: ${h(action.label)}. ${h(p.task || 'No verified task')}` }" aria-pressed="${state.selected === p.id}">
-      <span class="ground-ring"></span><span class="character" style="background-position:${artPosition}"></span>${action && ['phone','coffee','read'].includes(action.motion) ? `<span class="ambient-prop" aria-hidden="true">${action.icon}</span>` : ''}${bubble}<span class="person-label">${h(p.role)}</span>
+      style="left:${position.x}%;top:${position.y}%;--wander-x:${(position.dx*world.offsetWidth/100).toFixed(1)}px;--wander-y:${(position.dy*world.offsetHeight/100).toFixed(1)}px;--wander-third-x:${(position.dx*world.offsetWidth*.0035).toFixed(1)}px;--wander-third-y:${(position.dy*world.offsetHeight*.0035).toFixed(1)}px;--wander-mid-x:${(position.mx*world.offsetWidth/100).toFixed(1)}px;--wander-mid-y:${(position.my*world.offsetHeight/100).toFixed(1)}px;--delay:-${(i % 5) * .41}s;--phase:-${phase.toFixed(2)}s" aria-label="${h(p.role)}: ${working ? h(p.task || stateText(p.state)) : `Ambient: ${h(action.label)}. ${h(p.task || 'No verified task')}` }" aria-pressed="${state.selected === p.id}">
+      <span class="ground-ring"></span><span class="character" style="background-position:${artPosition}"></span>${action && ['phone','coffee','read','plan','camera','whiteboard'].includes(action.motion) ? `<span class="ambient-prop" aria-hidden="true">${action.icon}</span>` : ''}${bubble}<span class="person-label">${h(p.role)}</span>
     </button>`;
   }).join('');
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    for (const node of $('people-layer').children) {
+      const old = previous.get(node.dataset.person);
+      if (old && (old.x !== node.style.left || old.y !== node.style.top)) {
+        node.animate([{left:old.x,top:old.y},{left:node.style.left,top:node.style.top}],{duration:1000,easing:'ease-in-out'});
+      }
+    }
+  }
 }
 function renderInspector() {
   const p = selectedPerson();
@@ -110,7 +121,7 @@ function renderInspector() {
     <div class="detail-section"><div class="detail-label"><span class="detail-icon">♧</span> Pipeline</div><div class="pipeline-steps">${PIPES.map((step,i) => `<div class="pipeline-step ${index > i ? 'passed' : index === i && isActive(p.state) ? 'current' : ''}"><span class="pipeline-dot">${index > i ? '✓' : ''}</span><span>${step}</span></div>`).join('')}</div></div>
     <div class="inspector-rule"></div>
     <div class="detail-section"><div class="detail-label"><span class="detail-icon">▱</span> Project</div><div class="project-inline">${proj ? `<span class="project-icon" style="background:${proj.color === 'teal' ? '#15bda5' : '#9350df'}">${h(proj.icon || proj.name[0])}</span>${h(proj.name)}` : '<span>No assigned project</span>'}</div></div>
-    <div class="inspector-footnote">${state.mode === 'demo' ? 'Portfolio demonstration: all names, jobs, task descriptions, progress and activity are synthetic. Idle gestures are ambient role-play.' : state.connection === 'unauthorized' ? 'JUJU session is not authorized. Sign in to the existing Control Center, then retry. Ambient motion is visual-only.' : !['connected','stale'].includes(state.connection) ? 'Disconnected. Ambient routines are not real tasks; this panel makes no claim about current JUJU activity.' : 'Live read-only projection. Each role is virtual. Work requires an authorized JUJU job; otherwise gestures are ambient only.'}</div>
+    <div class="inspector-footnote">${state.mode === 'demo' ? 'Portfolio demonstration: all names, jobs, task descriptions, progress and activity are synthetic. Idle gestures are ambient role-play.' : state.connection === 'unauthorized' ? 'JUJU session is not authorized. Sign in to the existing Control Center, then retry. Ambient motion is visual-only.' : state.connection === 'forbidden' ? 'The signed-in user lacks jobs.view. No real tasks are shown until an authorized account reconnects.' : !['connected','stale'].includes(state.connection) ? 'Disconnected. Ambient routines are not real tasks; this panel makes no claim about current JUJU activity.' : 'Live read-only projection. Each role is virtual. Work requires an authorized JUJU job; otherwise gestures are ambient only.'}</div>
   </div>`;
 }
 function renderActivity() {
@@ -158,6 +169,7 @@ function setZoom(value) {
   state.zoom = Math.max(.65,Math.min(1.35,Math.round(value * 100) / 100));
   $('floor-world').style.width = `${Math.round(1672 * state.zoom)}px`;
   $('zoom-readout').textContent = `${Math.round(state.zoom * 100)}%`;
+  renderPeople();
 }
 function toast(message) { const el = $('toast'); el.textContent = message; el.hidden = false; clearTimeout(toast.timeout); toast.timeout = setTimeout(() => el.hidden = true, 4500); }
 function modal(title, body) { $('modal-title').textContent = title; $('modal-body').innerHTML = body; $('modal-backdrop').hidden = false; $('modal-close').focus(); }
@@ -178,11 +190,11 @@ async function refreshLive() {
         credentials: 'same-origin',cache:'no-store',signal:controller.signal,
         headers:{Accept:'application/json'}
       });
-      if (source.status === 401 || source.status === 403) throw new Error('JUJU sign-in required');
+      if (authFailure(source.status)) throw new Error(authFailure(source.status));
       if (!source.ok) throw new Error(`JUJU jobs HTTP ${source.status}`);
       data = projectJujuJobs(await source.json());
     } else {
-      if (res.status === 401 || res.status === 403) throw new Error('JUJU sign-in required');
+      if (authFailure(res.status)) throw new Error(authFailure(res.status));
       if (!res.ok) throw new Error(`Office adapter HTTP ${res.status}`);
       data = await res.json();
     }
@@ -193,7 +205,7 @@ async function refreshLive() {
   } catch (error) {
     if (state.mode !== 'live') return;
     state.lastLiveError = String(error?.message || error).slice(0,100);
-    state.connection = state.lastLiveError === 'JUJU sign-in required' ? 'unauthorized' : 'disconnected';
+    state.connection = state.lastLiveError === 'JUJU sign-in required' ? 'unauthorized' : state.lastLiveError === 'JUJU jobs.view permission required' ? 'forbidden' : 'disconnected';
     state.snapshot = { schema_version:'1.0', mode:'live', observed_at:null, projects:[], staff:[], activity:[] };
     renderAll();
   } finally { clearTimeout(timeout); }
