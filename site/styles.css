@@ -79,7 +79,7 @@ button,input{font:inherit}button{cursor:pointer}button:focus-visible,a:focus-vis
 .person.ambient .ambient-prop{width:25px;height:25px;font-size:17px}
 @keyframes office-wander{
   0%,100%{transform:translate(-50%,-83%)}
-  17%{transform:translate(calc(-50% + var(--wander-third-x)),calc(-83% + var(--wander-third-y))}
+  17%{transform:translate(calc(-50% + var(--wander-third-x)),calc(-83% + var(--wander-third-y)))}
   40%{transform:translate(calc(-50% + var(--wander-x)),calc(-83% + var(--wander-y)))}
   67%{transform:translate(calc(-50% + var(--wander-mid-x)),calc(-83% + var(--wander-mid-y)))}
   85%{transform:translate(-50%,-83%)}

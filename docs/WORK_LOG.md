@@ -2,6 +2,13 @@
 
 This is a factual work log. Planned tasks are not reported as implemented, tested or deployed.
 
+## 2026-11-25 — v6 CSS parse correction after user LAN screenshot
+
+- User hard-refreshed the authenticated `/office/` screen after v5 and still saw backpack-wearing, standing sprites. The new LIVE coverage notice was present, proving JavaScript had updated while character rendering had not.
+- Reproduced in the browser preview: computed character `background-image` was still `worker-atlas.png`, and the stylesheet's CSSOM ended inside `@keyframes office-wander` before any v5 seated/roaming rules. Root cause was a missing closing `)` in the first `translate(calc(...),calc(...))` animation declaration; the browser silently discarded later CSS.
+- Corrected the declaration and revisioned both stylesheet/module links to `?office=v6` so previously cached code cannot mask a release. Added structural CSS delimiter and HTML cache-coherence tests.
+- After the correction, the preview browser CSSOM includes the new seated rule and computed worker art resolves to `worker-seated-atlas-v1.webp`. Visual preview shows eight seated/working roles and two small aisle walkers with the new bag-free artwork. This is preview evidence, not a client-LAN screenshot or proof of YVIRSONE/IncluzIT data ingestion.
+
 ## 2026-11-25 — v5 seated-art revision (local source, deployment pending)
 
 - User's actual LIVE screenshot proved authenticated jobs now work, but the v4 actors still looked like floating walking cutouts, overlapped workstation furniture, carried backpacks, and displayed too many ambient speech bubbles.
