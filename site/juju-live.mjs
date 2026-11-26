@@ -70,9 +70,18 @@ function validJob(value) {
     && typeof value.title === 'string' && typeof value.project === 'string';
 }
 
+// Project SEO was permanently retired by the operator. Keep its historical
+// JUJU records intact but do not mistake old queued/approval jobs for a live
+// project in this read-only visualization.
+export function isRetiredProject(value) {
+  return /\bproject[\s_-]*seo\b|^pseo$/i.test(String(value || '').trim());
+}
+
 export function projectJujuJobs(response, now = Date.now()) {
   if (!response || !Array.isArray(response.items)) throw new Error('Unrecognized JUJU jobs response');
-  const jobs = response.items.filter(validJob).slice(0, 100);
+  const jobs = response.items.filter(validJob)
+    .filter(job => !isRetiredProject(job.project) && !isRetiredProject(job.project_id))
+    .slice(0, 100);
   const seenProjects = new Map();
   const liveRoles = new Map();
   const activity = [];

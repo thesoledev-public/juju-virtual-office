@@ -2,6 +2,14 @@
 
 This is a factual work log. Planned tasks are not reported as implemented, tested or deployed.
 
+## 2026-11-25 — v5 seated-art revision (local source, deployment pending)
+
+- User's actual LIVE screenshot proved authenticated jobs now work, but the v4 actors still looked like floating walking cutouts, overlapped workstation furniture, carried backpacks, and displayed too many ambient speech bubbles.
+- Replaced the developer-only typing sheet with ten distinct bag-free seated figures in a 5×2 optimized WebP atlas; two separate bag-free walking figures are reserved for the calibrated clear-floor aisle routes. The eight other positions are anchored to identifiable desk/meeting chairs. Real active jobs keep assigned roles seated while working.
+- Ambient speech bubbles and loose props no longer appear over idle workers. The selected inspector continues to label ambient actions as visual-only, separate from JUJU jobs. Verified job bubbles are limited to the selected/hovered worker.
+- Project SEO was permanently retired on juju-mini. Its old jobs are **filtered from Office display only**, never deleted from the underlying Control Center history. YVIRSONE/IncluzIT stay evidence-driven and must not be fabricated if direct GitHub Actions runs were not entered as JUJU jobs; a coverage notice is shown.
+- 28/28 automated tests and syntax checks pass locally. Browser comparison on a real LAN client, exact furniture occlusion and release on juju-mini are **not yet verified** at this checkpoint.
+
 ## 2026-11-24 — Planning baseline
 
 - Selected repository: `thesoledev-public/juju-virtual-office`, **public**, initially empty with `main` as default branch.

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {authFailure,mapJujuState,projectJujuJobs,shouldAutoConnectLive} from './juju-live.mjs';
+import {authFailure,isRetiredProject,mapJujuState,projectJujuJobs,shouldAutoConnectLive} from './juju-live.mjs';
 
 const NOW=Date.parse('2026-11-25T10:00:00Z');
 const job={id:'job-1',job_key:'task-1',title:'Fix report loading',project:'ATLAS',project_id:'atlas',state:'running',stage:'coding',updated_at:'2026-11-25T09:59:50Z'};
@@ -36,6 +36,18 @@ test('real project names and unfinished jobs remain visible without pretending q
  assert.equal(p.projects[1].progress,null);
  assert.deepEqual(p.staff.map(x=>x.id),['erin']);
  assert.equal(p.activity.length,3);
+});
+test('retired Project SEO history stays in JUJU but is excluded from the current Office view',()=>{
+ assert.equal(isRetiredProject('Project SEO'),true);
+ assert.equal(isRetiredProject('project-seo'),true);
+ assert.equal(isRetiredProject('YVIRSONE'),false);
+ const p=projectJujuJobs({items:[
+   {...job,id:'legacy',project:'Project SEO',project_id:'project-seo',state:'queued'},
+   {...job,id:'current',project:'YVIRSONE',project_id:'yvirsone',state:'running'}
+ ]},NOW);
+ assert.deepEqual(p.projects.map(x=>x.name),['YVIRSONE']);
+ assert.equal(p.activity.length,1);
+ assert.equal(p.activity[0].id,'current');
 });
 test('unrecognized state and malformed records fail closed',()=>{
  assert.equal(mapJujuState('hmm'),'unknown');

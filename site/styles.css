@@ -88,3 +88,53 @@ button,input{font:inherit}button{cursor:pointer}button:focus-visible,a:focus-vis
 @keyframes office-camera{0%,100%{transform:translateY(0) rotate(0deg)}28%{transform:translateY(-4px) rotate(-3deg)}56%{transform:translateY(-2px) rotate(3deg)}}
 @keyframes office-wave{0%,100%{transform:translateY(0) rotate(0)}24%{transform:translateY(-4px) rotate(-3deg)}42%{transform:translateY(-1px) rotate(3deg)}68%{transform:translateY(-3px) rotate(-2deg)}}
 @keyframes office-relax{0%,100%{transform:translateY(0)}50%{transform:translateY(3px) rotate(1deg)}}
+
+/* v5 character staging: the scene contains real chairs and desks. Seated
+   workers use a purpose-built bag-free atlas, with the chair wheels grounded
+   at calibrated floor coordinates. Only two colleagues roam the open aisles. */
+.person{transform:translate(-50%,-91%);filter:drop-shadow(0 3px 3px #0a14387a)}
+.person.seated{width:clamp(91px,7.9%,130px);aspect-ratio:2/2.5;transform:translate(-50%,-94%)}
+.person.seated .character{
+  background-image:url('./assets/worker-seated-atlas-v1.webp');
+  background-size:500% 200%;
+  animation:seated-focus 5s ease-in-out infinite;
+  animation-delay:var(--delay)
+}
+.person.seated.ambient .character{animation:seated-focus 5s ease-in-out infinite;animation-delay:var(--delay)}
+.person.seated.active-work .character{animation:seated-typing 2.4s ease-in-out infinite;animation-delay:var(--delay)}
+.person.seated.active-work{animation:none}
+.person.roaming{width:clamp(78px,6.6%,110px);aspect-ratio:1;transform:translate(-50%,-92%)}
+.person.roaming .character,.person.roaming.ambient .character{
+  background-image:url('./assets/worker-roaming-atlas-v1.webp');
+  background-size:200% 100%;
+  animation:character-idle 3.2s ease-in-out infinite;animation-delay:var(--delay)
+}
+.person.roaming.ambient-walk{animation:office-aisle-walk 9.8s ease-in-out infinite;animation-delay:var(--phase)}
+.person.roaming.ambient-walk .character{animation:character-walk .9s ease-in-out infinite;animation-delay:var(--delay)}
+.person.roaming.ambient-camera .character,.person.roaming.ambient-phone .character{animation:office-read 4s ease-in-out infinite;animation-delay:var(--delay)}
+.person.roaming .ground-ring{bottom:5%}
+.person.seated .ground-ring{bottom:1%;left:17%;width:66%;height:9%}
+.person .speech{max-width:165px;white-space:normal;text-align:center;font-size:10px;padding:6px 8px}
+.person:not(.selected) .speech{opacity:0}
+.person:hover .speech,.person:focus-visible .speech{opacity:1}
+.person.selected .speech{opacity:1}
+.profile-avatar .character{background-image:url('./assets/worker-seated-atlas-v1.webp')}
+@keyframes seated-focus{
+  0%,100%{transform:translateY(0) rotate(-.2deg)}
+  40%{transform:translateY(.6px) rotate(.3deg)}
+  70%{transform:translateY(0) rotate(.15deg)}
+}
+@keyframes seated-typing{
+  0%,100%{transform:translateY(0) rotate(-.15deg)}
+  25%{transform:translateY(.7px) rotate(.2deg)}
+  50%{transform:translateY(0) rotate(-.3deg)}
+  75%{transform:translateY(.7px) rotate(.1deg)}
+}
+@keyframes office-aisle-walk{
+  0%,100%{transform:translate(-50%,-92%)}
+  17%{transform:translate(calc(-50% + var(--wander-third-x)),calc(-92% + var(--wander-third-y)))}
+  40%{transform:translate(calc(-50% + var(--wander-x)),calc(-92% + var(--wander-y)))}
+  67%{transform:translate(calc(-50% + var(--wander-mid-x)),calc(-92% + var(--wander-mid-y)))}
+  85%{transform:translate(-50%,-92%)}
+}
+.project-coverage{font-size:11px;line-height:1.45;color:#ffdbad;background:#503c2238;border:1px solid #9d733f77;border-radius:9px;padding:10px 11px;margin:2px 0 12px}

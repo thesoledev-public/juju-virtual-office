@@ -68,7 +68,12 @@ function renderProjects() {
       <div class="progress-line"><span class="progress-track"><span class="progress-fill" style="width:${progress ?? 0}%"></span></span><b>${progress === null ? '—' : `${Math.round(progress)}%`}</b></div>
     </button>`;
   }).join('');
-  $('project-cards').innerHTML = cards || `<p style="color:#b1c8e8;padding:0 12px">No authorized projects returned.</p>`;
+  // The canonical JUJU jobs API can legitimately omit direct GitHub Actions
+  // execution. Never fill that gap with synthetic YVIRSONE/IncluzIT progress.
+  const hasTargetWork = state.snapshot.projects.some(p => /yvirsone|incluzit/i.test(p.name));
+  const coverage = state.mode === 'live' && ['connected','stale'].includes(state.connection) && !hasTargetWork
+    ? '<p class="project-coverage">No YVIRSONE or IncluzIT jobs in the returned JUJU records yet. Direct GitHub Actions runs are not automatically recorded here.</p>' : '';
+  $('project-cards').innerHTML = (cards || `<p style="color:#b1c8e8;padding:0 12px">No current authorized projects returned.</p>`) + coverage;
 }
 function renderPeople() {
   const actors = roleRoster();
@@ -82,19 +87,23 @@ function renderPeople() {
     const action = working ? null : ambientAction(p.id,beat);
     const position = scenePosition(p.id,working,beat);
     const seated = isSeatedAtComputer(p.id,working);
-    const artPosition = seated ? `${p.id === 'dani' ? 0 : 100}% 0%` : glyph(p.sprite);
-    const bubbleText = working ? p.bubble : `${action.icon} ${action.label}`;
+    const artPosition = seated ? glyph(p.sprite) : p.id === 'avery' ? '0% 0%' : '100% 0%';
+    // Overhead text is reserved for verified jobs, not ambient routines.
+    // The full ambient action is still available in the selected inspector.
+    const bubbleText = working ? p.bubble : '';
     const bubble = bubbleText ? `<span class="speech ${action ? 'ambient-speech' : ''}">${h(bubbleText)}</span>` : '';
-    const highlighted = state.selected === p.id || (!dimmed && (working ? [2,5,6,8].includes(i) : [0,1,3,9].includes(i)));
-    return `<button type="button" class="person role-${h(p.id)} ${personClass(p)} ${action ? `ambient ambient-${action.motion}` : ''} ${seated ? 'sitting' : ''} ${state.selected === p.id ? 'selected' : ''} ${highlighted ? 'bubble-highlight' : ''} ${dimmed ? 'dimmed' : ''}" data-person="${h(p.id)}"
+    return `<button type="button" class="person role-${h(p.id)} ${personClass(p)} ${action ? `ambient ambient-${action.motion}` : ''} ${seated ? 'seated' : 'roaming'} ${state.selected === p.id ? 'selected' : ''} ${dimmed ? 'dimmed' : ''}" data-person="${h(p.id)}"
       style="left:${position.x}%;top:${position.y}%;--wander-x:${(position.dx*world.offsetWidth/100).toFixed(1)}px;--wander-y:${(position.dy*world.offsetHeight/100).toFixed(1)}px;--wander-third-x:${(position.dx*world.offsetWidth*.0035).toFixed(1)}px;--wander-third-y:${(position.dy*world.offsetHeight*.0035).toFixed(1)}px;--wander-mid-x:${(position.mx*world.offsetWidth/100).toFixed(1)}px;--wander-mid-y:${(position.my*world.offsetHeight/100).toFixed(1)}px;--delay:-${(i % 5) * .41}s;--phase:-${phase.toFixed(2)}s" aria-label="${h(p.role)}: ${working ? h(p.task || stateText(p.state)) : `Ambient: ${h(action.label)}. ${h(p.task || 'No verified task')}` }" aria-pressed="${state.selected === p.id}">
-      <span class="ground-ring"></span><span class="character" style="background-position:${artPosition}"></span>${action && ['phone','coffee','read','plan','camera','whiteboard'].includes(action.motion) ? `<span class="ambient-prop" aria-hidden="true">${action.icon}</span>` : ''}${bubble}<span class="person-label">${h(p.role)}</span>
+      <span class="ground-ring"></span><span class="character" style="background-position:${artPosition}"></span>${bubble}<span class="person-label">${h(p.role)}</span>
     </button>`;
   }).join('');
   if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
     for (const node of $('people-layer').children) {
       const old = previous.get(node.dataset.person);
-      if (old && (old.x !== node.style.left || old.y !== node.style.top)) {
+      // Never slide a worker across desks when a verified job changes pose.
+      if (old && Math.abs(parseFloat(old.x)-parseFloat(node.style.left)) <= 4 &&
+          Math.abs(parseFloat(old.y)-parseFloat(node.style.top)) <= 4 &&
+          (old.x !== node.style.left || old.y !== node.style.top)) {
         node.animate([{left:old.x,top:old.y},{left:node.style.left,top:node.style.top}],{duration:1000,easing:'ease-in-out'});
       }
     }
